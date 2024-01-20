@@ -1,6 +1,6 @@
 import gspread
 
-gc = gspread.oauth()
+gc = gspread.service_account()
 
 sheet_names = [
         "Spending-2019",
