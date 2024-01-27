@@ -7,6 +7,7 @@ from typing import List, Dict
 import datetime
 import tabulate
 
+
 class TransactionType(Enum):
     CC = 1
     DD = 2
@@ -38,29 +39,29 @@ class Category(Enum):
 
     @staticmethod
     def from_str(label):
-        if label.lower() == 'income':
+        if label.lower() == "income":
             return Category.INCOME
-        elif label.lower() == 'saving':
+        elif label.lower() == "saving":
             return Category.SAVING
-        elif label.lower() == 'bills':
+        elif label.lower() == "bills":
             return Category.BILLS
-        elif label.lower() == 'donation':
+        elif label.lower() == "donation":
             return Category.DONATION
-        elif label.lower() == 'shopping':
+        elif label.lower() == "shopping":
             return Category.SHOPPING
-        elif label.lower() == 'food and drink':
+        elif label.lower() == "food and drink":
             return Category.FOOD_AND_DRINK
-        elif label.lower() == 'cash':
+        elif label.lower() == "cash":
             return Category.CASH
-        elif label.lower() == 'house':
+        elif label.lower() == "house":
             return Category.HOUSE
-        elif label.lower() == 'children':
+        elif label.lower() == "children":
             return Category.CHILDREN
-        elif label.lower() == 'transport':
+        elif label.lower() == "transport":
             return Category.TRANSPORT
-        elif label.lower() == 'misc':
+        elif label.lower() == "misc":
             return Category.MISC
-        elif label.lower() == 'transfers':
+        elif label.lower() == "transfers":
             return Category.TRANSFERS
         else:
             return NotImplementedError
@@ -74,6 +75,7 @@ class Transaction:
     """
     A class to represent a single transaction.
     """
+
     date: datetime.date
     transaction_type: TransactionType
     category: Category
@@ -84,10 +86,12 @@ class Transaction:
     def __str__(self):
         return f"{self.date:%d-%m-%Y} {self.transaction_type} {self.category} {self.amount} {self.description} {self.note}"
 
+
 class Month:
     """
     A class to hold a set of transations within one month.
     """
+
     transactions: Dict[Category, List[Transaction]]
 
     def __init__(self):
@@ -98,12 +102,15 @@ class Month:
             for transaction in transactions:
                 print(str(transaction))
 
+
 @dataclass
 class Year:
     """
     A class to hold 12 months of transactions.
     """
+
     months: List[Month]
+
 
 def read_worksheet(table) -> Month:
     month = Month()
@@ -120,5 +127,3 @@ def read_worksheet(table) -> Month:
         # Append it to the month.
         month.transactions[t.category].append(t)
     return month
-
-

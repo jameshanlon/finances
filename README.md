@@ -6,6 +6,8 @@ Steps to get going:
 $ python -m venv env
 $ source env/bin/activate
 $ pip install -r requirements.txt
+...
+$ pre-commit install
 ```
 
 Access data held in Google Sheets using gspread Python package.
