@@ -1,2 +1,6 @@
+beartype
+python-dateutil
 gspread
 pre-commit
+tabulate
+rich
