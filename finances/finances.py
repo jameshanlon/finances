@@ -3,24 +3,51 @@ from dataclasses import dataclass
 from dateutil import parser
 from enum import Enum
 from rich import print
+from tabulate import tabulate
 from typing import List, Dict
 import datetime
-import tabulate
 
 
 class TransactionType(Enum):
-    CC = 1
-    DD = 2
+    BAC = 1
+    CC = 2
     CHG = 3
-    FP = 4
-    BAC = 5
+    DD = 4
+    FP = 5
     FPIB = 6
     ITFIB = 7
     ONL = 8
     POS = 9
 
+    @staticmethod
+    def from_str(label):
+        if label == "BAC":
+            return TransactionType.BAC
+        elif label == "CC":
+            return TransactionType.CC
+        elif label == "CHG":
+            return TransactionType.CHG
+        elif label == "DD":
+            return TransactionType.DD
+        elif label == "FP":
+            return TransactionType.FP
+        elif label == "FPIB":
+            return TransactionType.FPIB
+        elif label == "ITFIB":
+            return TransactionType.ITFIB
+        elif label == "ONL":
+            return TransactionType.ONL
+        elif label == "POS":
+            return TransactionType.POS
+        else:
+            raise runtime_error(f"unknown transaction type: {label}")
+
     def __str__(self):
         return str(self.value)
+
+
+class UnknownCategory(Exception):
+    pass
 
 
 class Category(Enum):
@@ -39,32 +66,32 @@ class Category(Enum):
 
     @staticmethod
     def from_str(label):
-        if label.lower() == "income":
+        if label == "income" or label == "in":
             return Category.INCOME
-        elif label.lower() == "saving":
+        elif label == "saving" or label == "saving deposit":
             return Category.SAVING
-        elif label.lower() == "bills":
+        elif label == "bills" or label == "monthly bills":
             return Category.BILLS
-        elif label.lower() == "donation":
+        elif label == "donation" or label == "donations":
             return Category.DONATION
-        elif label.lower() == "shopping":
+        elif label == "shopping":
             return Category.SHOPPING
-        elif label.lower() == "food and drink":
+        elif label == "food and drink" or label == "food, cafes, pub":
             return Category.FOOD_AND_DRINK
-        elif label.lower() == "cash":
+        elif label == "cash":
             return Category.CASH
-        elif label.lower() == "house":
+        elif label == "house":
             return Category.HOUSE
-        elif label.lower() == "children":
+        elif label == "children":
             return Category.CHILDREN
-        elif label.lower() == "transport":
+        elif label == "transport" or label == "car":
             return Category.TRANSPORT
-        elif label.lower() == "misc":
+        elif label == "misc":
             return Category.MISC
-        elif label.lower() == "transfers":
+        elif label == "transfers":
             return Category.TRANSFERS
         else:
-            return NotImplementedError
+            raise UnknownCategory(label)
 
     def __str__(self):
         return str(self.value)
@@ -97,10 +124,22 @@ class Month:
     def __init__(self):
         self.transactions = defaultdict(list)
 
-    def report(self):
+    def report_transactions(self):
+        headers = ["Date", "Type", "Category", "Description", "Amount", "Note"]
+        table = []
         for category, transactions in self.transactions.items():
-            for transaction in transactions:
-                print(str(transaction))
+            for t in transactions:
+                table.append(
+                    [
+                        f"{t.date:%d-%m-%Y}",
+                        t.transaction_type.name,
+                        t.category.name,
+                        t.description,
+                        t.amount,
+                        t.note,
+                    ]
+                )
+        print(tabulate(table, headers, tablefmt="simple_outline"))
 
 
 @dataclass
@@ -112,18 +151,57 @@ class Year:
     months: List[Month]
 
 
+def read_old_worksheet(table) -> Month:
+    """
+    Read an old-format worksheet and return a Month.
+    """
+    month = Month()
+    category = None
+    for i, row in enumerate(table[1:]):
+        try:
+            # Try and read a category label.
+            category = Category.from_str(row[0])
+            print(f"Category set to {category.name}")
+        except UnknownCategory:
+            pass
+        try:
+            # Parse the transaction.
+            date = parser.parse(row[0])
+            transaction_type = TransactionType.from_str(row[1].upper())
+            description = row[2]
+            if len(row[3]):
+                amount = float(row[3].replace("£", "").replace(",", ""))
+            elif len(row[4]):
+                amount = -float(row[4].replace("£", "").replace(",", ""))
+            else:
+                amount = None
+            note = row[5]
+            t = Transaction(date, transaction_type, category, description, amount, note)
+            # Append it to the month.
+            month.transactions[t.category].append(t)
+        except parser._parser.ParserError as e:
+            print(f"Skipping row {i+1}: {row}")
+    return month
+
+
 def read_worksheet(table) -> Month:
+    """
+    Read a new-format worksheet and return a Month.
+    """
     month = Month()
     assert table[0] == ["Date", "Type", "Category", "Description", "Amount", "Note"]
-    for row in table[1:]:
-        # Create the transaction object.
-        date = parser.parse(row[0])
-        transaction_type = TransactionType[row[1].upper()]
-        category = Category.from_str(row[2])
-        description = row[3]
-        amount = float(row[4].replace("£", "").replace(",", ""))
-        note = row[5]
-        t = Transaction(date, transaction_type, category, description, amount, note)
-        # Append it to the month.
-        month.transactions[t.category].append(t)
+    for i, row in enumerate(table[1:]):
+        try:
+            # Parse the transaction.
+            date = parser.parse(row[0])
+            transaction_type = TransactionType.from_str(row[1].upper())
+            category = Category.from_str(row[2].lower())
+            description = row[3]
+            amount = float(row[4].replace("£", "").replace(",", ""))
+            note = row[5]
+            t = Transaction(date, transaction_type, category, description, amount, note)
+            # Append it to the month.
+            month.transactions[t.category].append(t)
+        except parser._parser.ParserError as e:
+            print(f"Skipping row {i+1}: {row}")
     return month
