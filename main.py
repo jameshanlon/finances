@@ -3,54 +3,108 @@ import argparse
 from finances import finances
 from rich import print
 from dataclasses import dataclass
+from typing import Any
+import logging
+import pickle
+from pathlib import Path
+
+logging.basicConfig(level=logging.INFO)
 
 gc = gspread.service_account()
+
+MONTHS_IN_YEAR = 12
 
 
 @dataclass
 class Sheet:
     name: str
-    reader
+    reader: Any
 
 
 sheets = {
-    "2019": Sheet("Spending-2019", finances.read_old_worksheet),
-    "2020": Sheet("Spending-2020", finances.read_old_worksheet),
-    "2021": Sheet("Spending-2021", finances.read_old_worksheet),
-    "2022": Sheet("Spending-2022", finances.read_old_worksheet),
-    "2023": Sheet("Spending-2023", finances.read_old_worksheet),
-    "2024": Sheet("Spending-2024", finances.read_worksheet),
+    2019: Sheet("Spending-2019", finances.read_old_worksheet),
+    2020: Sheet("Spending-2020", finances.read_old_worksheet),
+    2021: Sheet("Spending-2021", finances.read_old_worksheet),
+    2022: Sheet("Spending-2022", finances.read_old_worksheet),
+    2023: Sheet("Spending-2023", finances.read_old_worksheet),
+    2024: Sheet("Spending-2024", finances.read_worksheet),
 }
 
 
-def report_month(sheet, year: str, month_index: int):
-    print(f"Opening worksheet {month_index} from {sheet_name}")
+def load_month(sheet, year_index: int, month_index: int) -> finances.Month:
+    logging.info(f"Opening worksheet {month_index}")
+    # Load
     worksheet = sheet.get_worksheet(month_index)
     values = worksheet.get_all_values()
-    month = sheets[year].reader(values)
-    month.report_transactions()
+    # Parse
+    return sheets[year_index].reader(values, month_index)
 
 
-def report_sheet(year: str, month_index: int):
-    sheet = gc.open(sheets[year].name)
-    worksheet_count = len(spreadsheet.worksheets())
-    if month_index == -1:
-        # Report all months.
-        for i in range(min(12, worksheet_count)):
-            report_month(sheet, i)
+def load_year(year_index: int, fetch: bool) -> finances.Year:
+    filename = f"finances-{year_index}.pickle"
+    if fetch:
+        sheet = gc.open(sheets[year_index].name)
+        logging.info(
+            f"Opening spreadsheet {sheets[year_index].name}, "
+            f"last updated {sheet.get_lastUpdateTime()}"
+        )
+        worksheet_count = len(sheet.worksheets())
+        year = finances.Year([])
+        for i in range(min(MONTHS_IN_YEAR, worksheet_count)):
+            year.months.append(load_month(sheet, year_index, i))
+        # Pickle
+        with open(filename, "wb") as f:
+            pickle.dump(year, f, pickle.HIGHEST_PROTOCOL)
+            logging.info(f"Wrote {filename}")
+        return year
     else:
-        # Report one month.
-        report_month(sheet, month_index)
+        # Unpickle
+        if not Path(filename).exists():
+            raise RuntimeError(
+                f"Pickle file {filename} does not exist, rerun with --fetch"
+            )
+        with open(filename, "rb") as f:
+            year = pickle.load(f)
+            logging.info(f"Read {filename}")
+            return year
 
 
 def main(args):
     if args.year:
-        report_sheet(args.year, args.month)
+        year = load_year(args.year, args.fetch)
+        if args.report_transactions:
+            if args.month:
+                year.months[args.month - 1].report_transactions()
+            else:
+                for month in year.months:
+                    month.report_transactions()
+    else:
+        pass
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--fetch", action="store_true", help="Fetch data from Google Sheets"
+    )
+    parser.add_argument(
+        "--year",
+        type=int,
+        default=None,
+        choices=range(2019, 2100),
+        help="Report a particular year",
+    )
+    parser.add_argument(
+        "--month",
+        type=int,
+        default=None,
+        choices=range(1, 12),
+        help="Report a particular month (1-12)",
+    )
+    parser.add_argument(
+        "--report-transactions",
+        action="store_true",
+        help="Display transactions in a table",
+    )
     args = parser.parse_args()
-    parser.add_argument("--year", default=None, help="Report a particular year")
-    parser.add_argument("--month", default=-1, help="Report a particular month")
     main(args)

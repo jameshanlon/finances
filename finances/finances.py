@@ -6,6 +6,7 @@ from rich import print
 from tabulate import tabulate
 from typing import List, Dict
 import datetime
+import logging
 
 
 class TransactionType(Enum):
@@ -18,6 +19,9 @@ class TransactionType(Enum):
     ITFIB = 7
     ONL = 8
     POS = 9
+    ATM = 10
+    DCR = 11
+    INT = 12
 
     @staticmethod
     def from_str(label):
@@ -39,8 +43,14 @@ class TransactionType(Enum):
             return TransactionType.ONL
         elif label == "POS":
             return TransactionType.POS
+        elif label == "ATM":
+            return TransactionType.ATM
+        elif label == "DCR":
+            return TransactionType.DCR
+        elif label == "INT":
+            return TransactionType.INT
         else:
-            raise runtime_error(f"unknown transaction type: {label}")
+            raise RuntimeError(f"unknown transaction type: {label}")
 
     def __str__(self):
         return str(self.value)
@@ -119,10 +129,15 @@ class Month:
     A class to hold a set of transations within one month.
     """
 
+    index: int
     transactions: Dict[Category, List[Transaction]]
 
-    def __init__(self):
+    def __init__(self, index: int):
+        self.index = index
         self.transactions = defaultdict(list)
+
+    def num_transactions(self) -> int:
+        return sum(len(v) for _, v in self.transactions.items())
 
     def report_transactions(self):
         headers = ["Date", "Type", "Category", "Description", "Amount", "Note"]
@@ -139,6 +154,7 @@ class Month:
                         t.note,
                     ]
                 )
+        print()
         print(tabulate(table, headers, tablefmt="simple_outline"))
 
 
@@ -151,20 +167,27 @@ class Year:
     months: List[Month]
 
 
-def read_old_worksheet(table) -> Month:
+def read_old_worksheet(table, month_index: int) -> Month:
     """
     Read an old-format worksheet and return a Month.
     """
-    month = Month()
+    month = Month(month_index)
     category = None
     for i, row in enumerate(table[1:]):
         try:
             # Try and read a category label.
-            category = Category.from_str(row[0])
-            print(f"Category set to {category.name}")
+            category = Category.from_str(row[0].lower())
+            logging.debug(f"Category set to {category.name}")
+            continue
         except UnknownCategory:
             pass
         try:
+            if category == None:
+                # Skip summary and template sheets.
+                logging.debug(
+                    f"Cannot parse entry with no category, skipping worksheet"
+                )
+                break
             # Parse the transaction.
             date = parser.parse(row[0])
             transaction_type = TransactionType.from_str(row[1].upper())
@@ -180,15 +203,16 @@ def read_old_worksheet(table) -> Month:
             # Append it to the month.
             month.transactions[t.category].append(t)
         except parser._parser.ParserError as e:
-            print(f"Skipping row {i+1}: {row}")
+            logging.debug(f"Skipping row {i+1}: {', '.join(row)}")
+    logging.info(f"Read {month.num_transactions()} transactions")
     return month
 
 
-def read_worksheet(table) -> Month:
+def read_worksheet(table, month_index: int) -> Month:
     """
     Read a new-format worksheet and return a Month.
     """
-    month = Month()
+    month = Month(month_index)
     assert table[0] == ["Date", "Type", "Category", "Description", "Amount", "Note"]
     for i, row in enumerate(table[1:]):
         try:
@@ -203,5 +227,6 @@ def read_worksheet(table) -> Month:
             # Append it to the month.
             month.transactions[t.category].append(t)
         except parser._parser.ParserError as e:
-            print(f"Skipping row {i+1}: {row}")
+            logging.debug(f"Skipping row {i+1}: {', '.join(row)}")
+    logging.info(f"Read {month.num_transactions()} transactions")
     return month
