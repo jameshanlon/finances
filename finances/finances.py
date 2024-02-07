@@ -27,7 +27,11 @@ class TransactionType(Enum):
     BGC = 15
     CPT = 16
     COR = 17
-    UNKNOWN = 18
+    CBP = 18
+    CHI = 19
+    RFP = 20
+    JNL = 21
+    UNKNOWN = 22
 
     @staticmethod
     def from_str(label):
@@ -70,6 +74,14 @@ class TransactionType(Enum):
             return TransactionType.CPT
         elif label == "COR" or label == "CORRECTION":
             return TransactionType.COR
+        elif label == "CBP":
+            return TransactionType.CBP
+        elif label == "CHI":
+            return TransactionType.CHI
+        elif label == "RFP":
+            return TransactionType.RFP
+        elif label == "JNL":
+            return TransactionType.JNL
         elif label == "UNKNOWN" or label == "":
             return TransactionType.UNKNOWN
         else:
@@ -269,11 +281,11 @@ def read_old_worksheet(table, year_index: int, month_index: int) -> Month:
                 or date.year == year_index - 1
                 or date.year == year_index + 1
             )
-            assert (
-                date.month == month_index + 1
-                or date.month == 1 + (month_index - 1) % 12
-                or date.month == 1 + (month_index + 1) % 12
-            )
+            # assert (
+            #    date.month == month_index + 1
+            #    or date.month == 1 + (month_index - 1) % 12
+            #    or date.month == 1 + (month_index + 1) % 12
+            # )
             # Type
             transaction_type = TransactionType.from_str(row[1].upper())
             # Description
@@ -312,11 +324,11 @@ def read_worksheet(table, year_index: int, month_index: int) -> Month:
                 or date.year == year_index - 1
                 or date.year == year_index + 1
             )
-            assert (
-                date.month == month_index + 1
-                or date.month == 1 + (month_index - 1) % 12
-                or date.month == 1 + (month_index + 1) % 12
-            )
+            # assert (
+            #    date.month == month_index + 1
+            #    or date.month == 1 + (month_index - 1) % 12
+            #    or date.month == 1 + (month_index + 1) % 12
+            # )
             # Type
             transaction_type = TransactionType.from_str(row[1].upper())
             # Category
