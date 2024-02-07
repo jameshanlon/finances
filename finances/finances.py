@@ -117,7 +117,7 @@ class Category(Enum):
             return Category.INCOME
         elif label.startswith("saving"):
             return Category.SAVING
-        elif label == "bills" or label.startswith("monthly bills"):
+        elif label == "bills" or label.startswith("monthly"):
             return Category.BILLS
         elif label == "donation" or label == "donations":
             return Category.DONATION
