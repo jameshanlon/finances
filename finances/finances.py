@@ -8,6 +8,8 @@ from typing import List, Dict
 import datetime
 import logging
 
+MONTHS_IN_YEAR = 12
+
 
 class TransactionType(Enum):
     CASH = 11
@@ -127,7 +129,7 @@ class Category(Enum):
             return Category.CASH
         elif label == "house":
             return Category.HOUSE
-        elif label == "children" or label == "baby":
+        elif label == "children" or label == "finn" or label == "baby":
             return Category.CHILDREN
         elif label == "transport" or label.startswith("car"):
             return Category.TRANSPORT
@@ -281,6 +283,7 @@ def read_old_worksheet(table, year_index: int, month_index: int) -> Month:
                 or date.year == year_index - 1
                 or date.year == year_index + 1
             )
+            print(f"month={month_index}, date={date}")
             assert (
                 date.month == month_index + 1
                 or date.month == 1 + (month_index - 1) % 12
@@ -326,8 +329,8 @@ def read_worksheet(table, year_index: int, month_index: int) -> Month:
             )
             assert (
                 date.month == month_index + 1
-                or date.month == 1 + (month_index - 1) % 12
-                or date.month == 1 + (month_index + 1) % 12
+                or date.month == 1 + (month_index - 1) % MONTHS_IN_YEAR
+                or date.month == 1 + (month_index + 1) % MONTHS_IN_YEAR
             )
             # Type
             transaction_type = TransactionType.from_str(row[1].upper())

@@ -10,8 +10,6 @@ from pathlib import Path
 
 gc = gspread.service_account()
 
-MONTHS_IN_YEAR = 12
-
 
 @dataclass
 class Sheet:
@@ -51,7 +49,7 @@ def load_year(year_index: int, fetch: bool) -> finances.Year:
         )
         worksheet_count = len(sheet.worksheets())
         year = finances.Year([])
-        for i in range(min(MONTHS_IN_YEAR, worksheet_count)):
+        for i in range(min(finances.MONTHS_IN_YEAR, worksheet_count)):
             year.months.append(load_month(sheet, year_index, i))
         # Pickle
         with open(filename, "wb") as f:
@@ -71,12 +69,9 @@ def load_year(year_index: int, fetch: bool) -> finances.Year:
 
 
 def main(args):
-    if args.debug:
-        logging.basicConfig(level=logging.DEBUG)
-    else:
-        logging.basicConfig(level=logging.INFO)
 
     if args.year:
+        # Just inspect a particular year.
         year = load_year(args.year, args.fetch)
         if args.report_transactions:
             if args.month:
@@ -85,12 +80,14 @@ def main(args):
                 for month in year.months:
                     month.report_transactions()
     else:
+        # All years.
         years = []
         for year in sheets.keys():
             years.append(load_year(year, args.fetch))
 
 
 if __name__ == "__main__":
+    # Setup argument parsing.
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--fetch", action="store_true", help="Fetch data from Google Sheets"
@@ -116,4 +113,9 @@ if __name__ == "__main__":
     )
     parser.add_argument("--debug", action="store_true", help="Print debugging messages")
     args = parser.parse_args()
+    # Setup logging.
+    if args.debug:
+        logging.basicConfig(level=logging.DEBUG)
+    else:
+        logging.basicConfig(level=logging.INFO)
     main(args)
