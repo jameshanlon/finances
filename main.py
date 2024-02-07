@@ -8,6 +8,11 @@ import logging
 import pickle
 from pathlib import Path
 
+"""
+To do:
+    - Skip 'Summary' and 'Template' sheet names.
+"""
+
 gc = gspread.service_account()
 
 
@@ -48,7 +53,7 @@ def load_year(year_index: int, fetch: bool) -> finances.Year:
             f"last updated {sheet.get_lastUpdateTime()}"
         )
         worksheet_count = len(sheet.worksheets())
-        year = finances.Year([])
+        year = finances.Year(year_index)
         for i in range(min(finances.MONTHS_IN_YEAR, worksheet_count)):
             year.months.append(load_month(sheet, year_index, i))
         # Pickle
@@ -79,6 +84,11 @@ def main(args):
             else:
                 for month in year.months:
                     month.report_transactions()
+        if args.report_summary:
+            if args.month:
+                year.months[args.month - 1].report_summary()
+            else:
+                year.report_summary()
     else:
         # All years.
         years = []
@@ -110,6 +120,11 @@ if __name__ == "__main__":
         "--report-transactions",
         action="store_true",
         help="Display transactions in a table",
+    )
+    parser.add_argument(
+        "--report-summary",
+        action="store_true",
+        help="Display a summary of transactions",
     )
     parser.add_argument("--debug", action="store_true", help="Print debugging messages")
     args = parser.parse_args()

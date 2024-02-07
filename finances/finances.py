@@ -194,6 +194,9 @@ class Month:
         print()
         print(tabulate(table, headers, tablefmt="simple_outline"))
 
+    def report_summary(self):
+        print(f"Summary for month {self.index}")
+
 
 @dataclass
 class Year:
@@ -201,7 +204,15 @@ class Year:
     A class to hold 12 months of transactions.
     """
 
+    index: int
     months: List[Month]
+
+    def __init__(self, index: int):
+        self.index = index
+        self.months = []
+
+    def report_summary(self):
+        print(f"Summary for month {self.index}")
 
 
 class InvalidRow(Exception):
