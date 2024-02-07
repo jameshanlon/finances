@@ -10,27 +10,27 @@ import logging
 
 
 class TransactionType(Enum):
+    CASH = 11
     BAC = 1
+    BGC = 15
+    CBP = 18
     CC = 2
-    CHG = 3
+    CHARGE = 3
+    CHI = 19
+    CHEQUE = 14
+    CORRECTION = 17
+    CPT = 16
+    DCR = 12
     DD = 4
     FP = 5
-    FPI = 6
-    FPO = 7
-    ITFIB = 8
+    FP_IN = 6
+    FP_OUT = 7
+    INTEREST = 13
+    INTERNAL_TRANSFER = 8
+    JNL = 21
     ONL = 9
     POS = 10
-    ATM = 11
-    DCR = 12
-    INT = 13
-    CHQ = 14
-    BGC = 15
-    CPT = 16
-    COR = 17
-    CBP = 18
-    CHI = 19
     RFP = 20
-    JNL = 21
     UNKNOWN = 22
 
     @staticmethod
@@ -40,7 +40,7 @@ class TransactionType(Enum):
         elif label == "CC":
             return TransactionType.CC
         elif label == "CHG" or label == "CHARGE":
-            return TransactionType.CHG
+            return TransactionType.CHARGE
         elif label == "DD" or label == "DEB" or label == "DIRECT_DEBIT":
             return TransactionType.DD
         elif label == "FP" or label == "PAY" or label == "BANK_GIRO_CREDIT":
@@ -51,29 +51,29 @@ class TransactionType(Enum):
             or label == "DEP"
             or label == "FASTER_PAYMENTS_INCOMING"
         ):
-            return TransactionType.FPI
+            return TransactionType.FP_IN
         elif label == "FPO" or label == "FPOB" or label == "FASTER_PAYMENTS_OUTGOING":
-            return TransactionType.FPO
+            return TransactionType.FP_OUT
         elif label == "ITFIB" or label == "TRANSFER" or label == "TFR":
-            return TransactionType.ITFIB
+            return TransactionType.INTERNAL_TRANSFER
         elif label == "ONL":
             return TransactionType.ONL
         elif label == "POS" or label == "DEBIT_CARD":
             return TransactionType.POS
         elif label == "ATM" or label == "CSH" or label == "CPT" or label == "CASHPOINT":
-            return TransactionType.ATM
+            return TransactionType.CASH
         elif label == "DCR":
             return TransactionType.DCR
         elif label == "INT":
-            return TransactionType.INT
+            return TransactionType.INTEREST
         elif label == "CHQ" or label == "CHEQUE":
-            return TransactionType.CHQ
+            return TransactionType.CHEQUE
         elif label == "BGC":
             return TransactionType.BGC
         elif label == "CPT":
             return TransactionType.CPT
-        elif label == "COR" or label == "CORRECTION":
-            return TransactionType.COR
+        elif label == "COR":
+            return TransactionType.CORRECTION
         elif label == "CBP":
             return TransactionType.CBP
         elif label == "CHI":
@@ -249,7 +249,7 @@ def read_oldest_worksheet(table, year_index: int, month_index: int) -> Month:
             # Append it to the month.
             month.transactions[t.category].append(t)
         except InvalidRow as e:
-            logging.debug(f"Skipping row {i+1}: {', '.join(row)}")
+            logging.warning(f"Skipping row {i+1}: {', '.join(row)}")
     logging.info(f"Read {month.num_transactions()} transactions")
     return month
 
@@ -281,11 +281,11 @@ def read_old_worksheet(table, year_index: int, month_index: int) -> Month:
                 or date.year == year_index - 1
                 or date.year == year_index + 1
             )
-            # assert (
-            #    date.month == month_index + 1
-            #    or date.month == 1 + (month_index - 1) % 12
-            #    or date.month == 1 + (month_index + 1) % 12
-            # )
+            assert (
+                date.month == month_index + 1
+                or date.month == 1 + (month_index - 1) % 12
+                or date.month == 1 + (month_index + 1) % 12
+            )
             # Type
             transaction_type = TransactionType.from_str(row[1].upper())
             # Description
@@ -303,7 +303,7 @@ def read_old_worksheet(table, year_index: int, month_index: int) -> Month:
             # Append it to the month.
             month.transactions[t.category].append(t)
         except (InvalidRow, parser._parser.ParserError) as e:
-            logging.debug(f"Skipping row {i+1}: {', '.join(row)}")
+            logging.warning(f"Skipping row {i+1}: {', '.join(row)}")
     logging.info(f"Read {month.num_transactions()} transactions")
     return month
 
@@ -324,11 +324,11 @@ def read_worksheet(table, year_index: int, month_index: int) -> Month:
                 or date.year == year_index - 1
                 or date.year == year_index + 1
             )
-            # assert (
-            #    date.month == month_index + 1
-            #    or date.month == 1 + (month_index - 1) % 12
-            #    or date.month == 1 + (month_index + 1) % 12
-            # )
+            assert (
+                date.month == month_index + 1
+                or date.month == 1 + (month_index - 1) % 12
+                or date.month == 1 + (month_index + 1) % 12
+            )
             # Type
             transaction_type = TransactionType.from_str(row[1].upper())
             # Category
@@ -343,6 +343,6 @@ def read_worksheet(table, year_index: int, month_index: int) -> Month:
             # Append it to the month.
             month.transactions[t.category].append(t)
         except parser._parser.ParserError as e:
-            logging.debug(f"Skipping row {i+1}: {', '.join(row)}")
+            logging.warning(f"Skipping row {i+1}: {', '.join(row)}")
     logging.info(f"Read {month.num_transactions()} transactions")
     return month

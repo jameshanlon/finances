@@ -87,7 +87,7 @@ def main(args):
     else:
         years = []
         for year in sheets.keys():
-            years.append(load_year(yeat, args.fetch))
+            years.append(load_year(year, args.fetch))
 
 
 if __name__ == "__main__":
