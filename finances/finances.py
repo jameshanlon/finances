@@ -26,7 +26,8 @@ class TransactionType(Enum):
     CHQ = 14
     BGC = 15
     CPT = 16
-    UNKNOWN = 17
+    COR = 17
+    UNKNOWN = 18
 
     @staticmethod
     def from_str(label):
@@ -67,6 +68,8 @@ class TransactionType(Enum):
             return TransactionType.BGC
         elif label == "CPT":
             return TransactionType.CPT
+        elif label == "COR" or label == "CORRECTION":
+            return TransactionType.COR
         elif label == "UNKNOWN" or label == "":
             return TransactionType.UNKNOWN
         else:
@@ -191,54 +194,11 @@ class InvalidRow(Exception):
     pass
 
 
-def read_old_worksheet(table, year_index: int, month_index: int) -> Month:
-    """
-    Read an old-format worksheet (2018-2023) and return a Month.
-    """
-    month = Month(month_index)
-    category = None
-    for i, row in enumerate(table[1:]):
-        try:
-            # Try and read a category label.
-            category = Category.from_str(row[0].lower())
-            logging.debug(f"Category set to {category.name}")
-            continue
-        except UnknownCategory:
-            pass
-        try:
-            if category == None:
-                raise InvalidRow()
-            if row[0] == "" and row[1] == "":
-                raise InvalidRow()
-            # Parse the transaction.
-            date = parser.parse(row[0])
-            assert date.year == year_index
-            assert date.month == month_index
-            transaction_type = TransactionType.from_str(row[1].upper())
-            description = row[2]
-            if len(row[3]):
-                amount = float(row[3].replace("£", "").replace(",", ""))
-            elif len(row[4]):
-                amount = -float(row[4].replace("£", "").replace(",", ""))
-            else:
-                amount = None
-            note = row[5]
-            t = Transaction(date, transaction_type, category, description, amount, note)
-            # Append it to the month.
-            month.transactions[t.category].append(t)
-        except parser._parser.ParserError as e:
-            logging.debug(f"Skipping row {i+1}: {', '.join(row)}")
-        except InvalidRow as e:
-            logging.debug(f"Skipping row {i+1}: {', '.join(row)}")
-    logging.info(f"Read {month.num_transactions()} transactions")
-    return month
-
-
-def read_old_worksheet2(table, year_index: int, month_index: int) -> Month:
+def read_oldest_worksheet(table, year_index: int, month_index: int) -> Month:
     """
     Read an old-format worksheet (2016, 2017) and return a Month.
     """
-    month = Month(month_index)
+    month = Month(month_index + 1)
     category = None
     for i, row in enumerate(table[1:]):
         try:
@@ -254,7 +214,6 @@ def read_old_worksheet2(table, year_index: int, month_index: int) -> Month:
             if row[0] == "" and row[1] == "":
                 raise InvalidRow()
             # Parse the transaction.
-            date = datetime.datetime(year_index, month_index, 1)
             transaction_type = TransactionType.from_str(row[0].upper())
             description = row[1]
             if len(row[2]):
@@ -266,15 +225,72 @@ def read_old_worksheet2(table, year_index: int, month_index: int) -> Month:
                     row[3].replace("£", "").replace(",", "").replace("CR", "")
                 )
             else:
-                print(f"amount={row}")
                 amount = None
             note = row[4]
+            # Try and parse the date if it's there.
+            try:
+                date = parser.parse(row[5])
+            except (IndexError, parser._parser.ParserError) as e:
+                date = datetime.datetime(year_index, month_index + 1, 1)
+            # Create the transaction.
             t = Transaction(date, transaction_type, category, description, amount, note)
             # Append it to the month.
             month.transactions[t.category].append(t)
-        except parser._parser.ParserError as e:
-            logging.debug(f"Skipping row {i+1}: {', '.join(row)}")
         except InvalidRow as e:
+            logging.debug(f"Skipping row {i+1}: {', '.join(row)}")
+    logging.info(f"Read {month.num_transactions()} transactions")
+    return month
+
+
+def read_old_worksheet(table, year_index: int, month_index: int) -> Month:
+    """
+    Read an old-format worksheet (2018-2023) and return a Month.
+    """
+    month = Month(month_index + 1)
+    category = None
+    for i, row in enumerate(table[1:]):
+        try:
+            # Try and read a category label.
+            category = Category.from_str(row[0].lower())
+            logging.debug(f"Category set to {category.name}")
+            continue
+        except UnknownCategory:
+            pass
+        try:
+            if category == None:
+                raise InvalidRow()
+            if row[0] == "" and row[1] == "":
+                raise InvalidRow()
+            # Parse the transaction.
+            # Date
+            date = parser.parse(row[0])
+            assert (
+                date.year == year_index
+                or date.year == year_index - 1
+                or date.year == year_index + 1
+            )
+            assert (
+                date.month == month_index + 1
+                or date.month == 1 + (month_index - 1) % 12
+                or date.month == 1 + (month_index + 1) % 12
+            )
+            # Type
+            transaction_type = TransactionType.from_str(row[1].upper())
+            # Description
+            description = row[2]
+            # Amount
+            if len(row[3]):
+                amount = float(row[3].replace("£", "").replace(",", ""))
+            elif len(row[4]):
+                amount = -float(row[4].replace("£", "").replace(",", ""))
+            else:
+                amount = None
+            # Note
+            note = row[5]
+            t = Transaction(date, transaction_type, category, description, amount, note)
+            # Append it to the month.
+            month.transactions[t.category].append(t)
+        except (InvalidRow, parser._parser.ParserError) as e:
             logging.debug(f"Skipping row {i+1}: {', '.join(row)}")
     logging.info(f"Read {month.num_transactions()} transactions")
     return month
@@ -284,18 +300,32 @@ def read_worksheet(table, year_index: int, month_index: int) -> Month:
     """
     Read a new-format worksheet and return a Month.
     """
-    month = Month(month_index)
+    month = Month(month_index + 1)
     assert table[0] == ["Date", "Type", "Category", "Description", "Amount", "Note"]
     for i, row in enumerate(table[1:]):
         try:
             # Parse the transaction.
+            # Date
             date = parser.parse(row[0])
-            assert date.year == year_index
-            assert date.month == month_index
+            assert (
+                date.year == year_index
+                or date.year == year_index - 1
+                or date.year == year_index + 1
+            )
+            assert (
+                date.month == month_index + 1
+                or date.month == 1 + (month_index - 1) % 12
+                or date.month == 1 + (month_index + 1) % 12
+            )
+            # Type
             transaction_type = TransactionType.from_str(row[1].upper())
+            # Category
             category = Category.from_str(row[2].lower())
+            # Description
             description = row[3]
+            # Amount
             amount = float(row[4].replace("£", "").replace(",", ""))
+            # Note
             note = row[5]
             t = Transaction(date, transaction_type, category, description, amount, note)
             # Append it to the month.

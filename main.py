@@ -20,8 +20,8 @@ class Sheet:
 
 
 sheets = {
-    2016: Sheet("Spending-2016", finances.read_old_worksheet2),
-    2017: Sheet("Spending-2017", finances.read_old_worksheet2),
+    2016: Sheet("Spending-2016", finances.read_oldest_worksheet),
+    2017: Sheet("Spending-2017", finances.read_oldest_worksheet),
     2018: Sheet("Spending-2018", finances.read_old_worksheet),
     2019: Sheet("Spending-2019", finances.read_old_worksheet),
     2020: Sheet("Spending-2020", finances.read_old_worksheet),
@@ -38,7 +38,7 @@ def load_month(sheet, year_index: int, month_index: int) -> finances.Month:
     worksheet = sheet.get_worksheet(month_index)
     values = worksheet.get_all_values()
     # Parse
-    return sheets[year_index].reader(values, year_index, month_index + 1)
+    return sheets[year_index].reader(values, year_index, month_index)
 
 
 def load_year(year_index: int, fetch: bool) -> finances.Year:
