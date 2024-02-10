@@ -1,5 +1,6 @@
 beartype
 gspread
+jinja2
 pre-commit
 python-dateutil
 rich

@@ -7,6 +7,7 @@ from tabulate import tabulate
 from typing import List, Dict
 import datetime
 import logging
+from jinja2 import Environment, FileSystemLoader
 
 MONTHS_IN_YEAR = 12
 
@@ -360,3 +361,13 @@ def read_worksheet(table, year_index: int, month_index: int) -> Month:
             logging.warning(f"Skipping row {i+1}: {', '.join(row)}")
     logging.info(f"Read {month.num_transactions()} transactions")
     return month
+
+
+def render_html(years: List[Year]):
+    environment = Environment(loader=FileSystemLoader("templates/"))
+    template = environment.get_template("index.html")
+    content = template.render()
+    filename = "index.html"
+    with open(filename, mode="w", encoding="utf-8") as f:
+        f.write(content)
+        logging.info(f"Wrote {filename}")

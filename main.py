@@ -35,7 +35,10 @@ sheets = {
 }
 
 
-def load_month(sheet, year_index: int, month_index: int) -> finances.Month:
+def fetch_month(sheet, year_index: int, month_index: int) -> finances.Month:
+    """
+    Fetch month data from a particular worksheet.
+    """
     logging.info(f"Opening worksheet {month_index}")
     # Load
     worksheet = sheet.get_worksheet(month_index)
@@ -44,56 +47,55 @@ def load_month(sheet, year_index: int, month_index: int) -> finances.Month:
     return sheets[year_index].reader(values, year_index, month_index)
 
 
-def load_year(year_index: int, fetch: bool) -> finances.Year:
+def fetch_year(year_index: int, fetch: bool) -> finances.Year:
+    """
+    Fetch year date from Google Sheets.
+    """
     filename = f"finances-{year_index}.pickle"
-    if fetch:
-        sheet = gc.open(sheets[year_index].name)
-        logging.info(
-            f"Opening spreadsheet {sheets[year_index].name}, "
-            f"last updated {sheet.get_lastUpdateTime()}"
-        )
-        worksheet_count = len(sheet.worksheets())
-        year = finances.Year(year_index)
-        for i in range(min(finances.MONTHS_IN_YEAR, worksheet_count)):
-            year.months.append(load_month(sheet, year_index, i))
-        # Pickle
-        with open(filename, "wb") as f:
-            pickle.dump(year, f, pickle.HIGHEST_PROTOCOL)
-            logging.info(f"Wrote {filename}")
-        return year
-    else:
-        # Unpickle
-        if not Path(filename).exists():
-            raise RuntimeError(
-                f"Pickle file {filename} does not exist, rerun with --fetch"
-            )
-        with open(filename, "rb") as f:
-            year = pickle.load(f)
-            logging.info(f"Read {filename}")
-            return year
+    sheet = gc.open(sheets[year_index].name)
+    logging.info(
+        f"Opening spreadsheet {sheets[year_index].name}, "
+        f"last updated {sheet.get_lastUpdateTime()}"
+    )
+    worksheet_count = len(sheet.worksheets())
+    year = finances.Year(year_index)
+    for i in range(min(finances.MONTHS_IN_YEAR, worksheet_count)):
+        year.months.append(fetch_month(sheet, year_index, i))
+    # Pickle
+    with open(filename, "wb") as f:
+        pickle.dump(year, f, pickle.HIGHEST_PROTOCOL)
+        logging.info(f"Wrote {filename}")
+    return year
+
+
+def load_year(year_index: int, fetch: bool) -> finances.Year:
+    """
+    Load a year from a pikcle file.
+    """
+    filename = f"finances-{year_index}.pickle"
+    if not Path(filename).exists():
+        logging.warning(f"Pickle file {filename} does not exist, skipping")
+        return
+    with open(filename, "rb") as f:
+        year = pickle.load(f)
+        logging.info(f"Read {filename}")
+    return year
 
 
 def main(args):
 
-    if args.year:
-        # Just inspect a particular year.
-        year = load_year(args.year, args.fetch)
-        if args.report_transactions:
-            if args.month:
-                year.months[args.month - 1].report_transactions()
-            else:
-                for month in year.months:
-                    month.report_transactions()
-        if args.report_summary:
-            if args.month:
-                year.months[args.month - 1].report_summary()
-            else:
-                year.report_summary()
-    else:
-        # All years.
-        years = []
-        for year in sheets.keys():
-            years.append(load_year(year, args.fetch))
+    if args.fetch:
+        if not args.year:
+            logging.error("Specify a year to fetch (--year)")
+            return 1
+        # Just fetch a particular year.
+        fetch_year(args.year, args.fetch)
+        return 0
+
+    # Load pickled data.
+    years = [load_year(x, args.fetch) for x in sheets.keys()]
+    finances.render_html(years)
+    return 0
 
 
 if __name__ == "__main__":
