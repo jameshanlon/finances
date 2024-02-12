@@ -382,25 +382,37 @@ def read_worksheet(table, year_index: int, month_index: int) -> Month:
     return month
 
 
+class MonthInYear(Enum):
+    Jan = 1
+    Feb = 2
+    Mar = 3
+    Apr = 4
+    May = 5
+    Jun = 6
+    Jul = 7
+    Aug = 8
+    Sep = 9
+    Oct = 10
+    Nov = 11
+    Dec = 12
+
+
 def render_html(dataset: Finances):
     environment = Environment(loader=FileSystemLoader("templates/"))
     template = environment.get_template("index.html")
-    months = [
-        "Jan",
-        "Feb",
-        "Mar",
-        "Apr",
-        "May",
-        "Jun",
-        "Jul",
-        "Aug",
-        "Sep",
-        "Oct",
-        "Nov",
-        "Dec",
-    ]
-    content = template.render(months=months, categories=Category, dataset=dataset)
+    content = template.render(months=MonthInYear, categories=Category, dataset=dataset)
     filename = "index.html"
+    # Summary
     with open(filename, mode="w", encoding="utf-8") as f:
         f.write(content)
         logging.info(f"Wrote {filename}")
+    # Years
+    for year in dataset.years:
+        template = environment.get_template("year.html")
+        content = template.render(
+            year=year.index, months=MonthInYear, categories=Category, dataset=year
+        )
+        filename = f"year-{year.index}.html"
+        with open(filename, mode="w", encoding="utf-8") as f:
+            f.write(content)
+            logging.info(f"Wrote {filename}")
