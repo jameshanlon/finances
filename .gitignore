@@ -1,3 +1,4 @@
 env/
 finances/__pycache__/
 *.pickle
+index.html

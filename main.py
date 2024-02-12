@@ -93,8 +93,8 @@ def main(args):
         return 0
 
     # Load pickled data.
-    years = [load_year(x, args.fetch) for x in sheets.keys()]
-    finances.render_html(years)
+    dataset = finances.Finances([load_year(x, args.fetch) for x in sheets.keys()])
+    finances.render_html(dataset)
     return 0
 
 

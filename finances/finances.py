@@ -168,35 +168,39 @@ class Month:
     """
 
     index: int
-    transactions: Dict[Category, List[Transaction]]
+    transactions: List[Transaction]
 
     def __init__(self, index: int):
         self.index = index
-        self.transactions = defaultdict(list)
+        self.transactions = []
 
     def num_transactions(self) -> int:
-        return sum(len(v) for _, v in self.transactions.items())
+        return len(self.transactions)
 
     def report_transactions(self):
         headers = ["Date", "Type", "Category", "Description", "Amount", "Note"]
         table = []
-        for category, transactions in self.transactions.items():
-            for t in transactions:
-                table.append(
-                    [
-                        f"{t.date:%d-%m-%Y}",
-                        t.transaction_type.name,
-                        t.category.name,
-                        t.description,
-                        t.amount,
-                        t.note,
-                    ]
-                )
+        for transaction in self.transactions:
+            table.append(
+                [
+                    f"{t.date:%d-%m-%Y}",
+                    t.transaction_type.name,
+                    t.category.name,
+                    t.description,
+                    t.amount,
+                    t.note,
+                ]
+            )
         print()
         print(tabulate(table, headers, tablefmt="simple_outline"))
 
-    def report_summary(self):
-        print(f"Summary for month {self.index}")
+    def total_amount(self, category: Category) -> float:
+        """
+        Return the total amount in a given category of transaction.
+        """
+        return float(
+            sum([x.amount for x in self.transactions if x.category == category])
+        )
 
 
 @dataclass
@@ -212,8 +216,20 @@ class Year:
         self.index = index
         self.months = []
 
-    def report_summary(self):
-        print(f"Summary for month {self.index}")
+    def total_amount(self, category: Category) -> float:
+        """
+        Return the total amount in a given category of transaction.
+        """
+        return float(sum(x.total_amount(category) for x in self.months))
+
+
+@dataclass
+class Finances:
+    """
+    A class to hold finance data.
+    """
+
+    years: List[Year]
 
 
 class InvalidRow(Exception):
@@ -261,11 +277,31 @@ def read_oldest_worksheet(table, year_index: int, month_index: int) -> Month:
             # Create the transaction.
             t = Transaction(date, transaction_type, category, description, amount, note)
             # Append it to the month.
-            month.transactions[t.category].append(t)
+            month.transactions.append(t)
         except InvalidRow as e:
             logging.warning(f"Skipping row {i+1}: {', '.join(row)}")
     logging.info(f"Read {month.num_transactions()} transactions")
     return month
+
+
+def check_year(date: datetime.datetime, year_index: int, row):
+    if not (
+        date.year == year_index
+        or date.year == year_index - 1
+        or date.year == year_index + 1
+    ):
+        logging.error(f"Date year ({date}) is out of range for {year_index}")
+        logging.info(f"Row: {', '.join(row)}")
+
+
+def check_month(date: datetime.datetime, month_index: int, row):
+    if not (
+        date.month == month_index + 1
+        or date.month == 1 + (month_index - 1) % 12
+        or date.month == 1 + (month_index + 1) % 12
+    ):
+        logging.error(f"Date month ({date}) is out of range for {month_index}")
+        logging.info(f"Row: {', '.join(row)}")
 
 
 def read_old_worksheet(table, year_index: int, month_index: int) -> Month:
@@ -290,17 +326,8 @@ def read_old_worksheet(table, year_index: int, month_index: int) -> Month:
             # Parse the transaction.
             # Date
             date = parser.parse(row[0])
-            assert (
-                date.year == year_index
-                or date.year == year_index - 1
-                or date.year == year_index + 1
-            )
-            print(f"month={month_index}, date={date}")
-            assert (
-                date.month == month_index + 1
-                or date.month == 1 + (month_index - 1) % 12
-                or date.month == 1 + (month_index + 1) % 12
-            )
+            check_year(date, year_index, row)
+            check_month(date, month_index, row)
             # Type
             transaction_type = TransactionType.from_str(row[1].upper())
             # Description
@@ -316,7 +343,7 @@ def read_old_worksheet(table, year_index: int, month_index: int) -> Month:
             note = row[5]
             t = Transaction(date, transaction_type, category, description, amount, note)
             # Append it to the month.
-            month.transactions[t.category].append(t)
+            month.transactions.append(t)
         except (InvalidRow, parser._parser.ParserError) as e:
             logging.warning(f"Skipping row {i+1}: {', '.join(row)}")
     logging.info(f"Read {month.num_transactions()} transactions")
@@ -334,16 +361,8 @@ def read_worksheet(table, year_index: int, month_index: int) -> Month:
             # Parse the transaction.
             # Date
             date = parser.parse(row[0])
-            assert (
-                date.year == year_index
-                or date.year == year_index - 1
-                or date.year == year_index + 1
-            )
-            assert (
-                date.month == month_index + 1
-                or date.month == 1 + (month_index - 1) % MONTHS_IN_YEAR
-                or date.month == 1 + (month_index + 1) % MONTHS_IN_YEAR
-            )
+            check_year(date, year_index, row)
+            check_month(date, month_index, row)
             # Type
             transaction_type = TransactionType.from_str(row[1].upper())
             # Category
@@ -356,17 +375,31 @@ def read_worksheet(table, year_index: int, month_index: int) -> Month:
             note = row[5]
             t = Transaction(date, transaction_type, category, description, amount, note)
             # Append it to the month.
-            month.transactions[t.category].append(t)
+            month.transactions.append(t)
         except parser._parser.ParserError as e:
             logging.warning(f"Skipping row {i+1}: {', '.join(row)}")
     logging.info(f"Read {month.num_transactions()} transactions")
     return month
 
 
-def render_html(years: List[Year]):
+def render_html(dataset: Finances):
     environment = Environment(loader=FileSystemLoader("templates/"))
     template = environment.get_template("index.html")
-    content = template.render()
+    months = [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+    ]
+    content = template.render(months=months, categories=Category, dataset=dataset)
     filename = "index.html"
     with open(filename, mode="w", encoding="utf-8") as f:
         f.write(content)
