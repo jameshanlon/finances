@@ -1,7 +1,7 @@
 # Personal finances
 
-Fetch personal finance data from Google Sheets and generate a set of HTML
-reports for browsing and summary.
+Fetch personal finance data from Google Sheets and generate a set of summary HTML
+reports.
 
 ## Getting started
 
