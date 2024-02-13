@@ -4,3 +4,5 @@ finances/__pycache__/
 index.html
 month-*.html
 year-*.html
+bundle.js*
+node_modules/
