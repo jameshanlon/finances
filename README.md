@@ -1,8 +1,11 @@
-# finances
+# Personal finances
 
-Steps to get going:
+Fetch personal finance data from Google Sheets and generate a set of HTML
+reports for browsing and summary.
 
-Setup Python
+## Getting started
+
+Setup Python:
 ```
 $ python -m venv env
 $ source env/bin/activate
@@ -10,14 +13,37 @@ $ pip install -r requirements.txt
 ...
 $ pre-commit install
 ```
-Setup NPM
+
+Setup NPM:
 ```
 $ wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
 $ nvm install 20
 $ npm install
 ```
 
-Access data held in Google Sheets using gspread Python package.
+Webpack:
+```
+$ npm run build
+```
+
+Fetch data from spreadsheets (individually to avoid rate limiting), eg:
+```
+$ python main.py --fetch 2024
+```
+
+Read all pickled data and generate the HTML report:
+```
+$ python main.py
+```
+
+Run a server to view the HTML:
+```
+$ python -m http.server 12345
+```
+
+## Google sheets API access
+
+Access data held in Google Sheets using the ``gspread`` Python package.
 
 Setup API access using these instructions for OAuth2:
 
