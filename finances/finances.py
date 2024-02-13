@@ -265,7 +265,7 @@ def read_oldest_worksheet(table, year_index: int, month_index: int) -> Month:
         try:
             if category == None:
                 raise InvalidRow()
-            if row[0] == "" and row[1] == "":
+            if row[0] == "":
                 raise InvalidRow()
             # Parse the transaction.
             transaction_type = TransactionType.from_str(row[0].upper())
@@ -333,7 +333,7 @@ def read_old_worksheet(table, year_index: int, month_index: int) -> Month:
         try:
             if category == None:
                 raise InvalidRow()
-            if row[0] == "" and row[1] == "":
+            if row[1] == "":
                 raise InvalidRow()
             # Parse the transaction.
             # Date

@@ -3,8 +3,6 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="css/sortable-theme-bootstrap.css" />
-    <script src="./bundle.js"></script>
     <title>Finances</title>
   </head>
   <body>
@@ -13,7 +11,10 @@
 
     {% for year in dataset.years | reverse %}
     <h2>{{year.index}}</h2>
-    <table class="table table-sm sortable-theme-bootstrap" data-sortable>
+
+    <div><canvas id="chart-{{year.index}}"></canvas></div>
+
+    <table class="table table-sm table-striped table-hover">
       <thead>
         <tr>
           <th scope="col">Category</th>
@@ -22,7 +23,7 @@
             <a href="month-{{month.value}}-{{year.index}}.html">{{month.name}}</a>
           </th>
           {% endfor %}
-          <th scope="col">Total</th>
+          <th scope="col">Totals</th>
         </tr>
       </thead>
       <tbody class="table-group-divider">
@@ -47,5 +48,59 @@
     {% endfor %}
 
     </div>
+    <!-- Should be loaded from the bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="bundle.js"></script>
+    <script>
+      {% for year in dataset.years | reverse %}
+      const ctx_{{year.index}} = document.getElementById('chart-{{year.index}}');
+
+      new Chart(ctx_{{year.index}}, {
+        type: 'bar',
+        data: {
+          labels: [{% for month in months %} '{{month.name}}', {% endfor %} ],
+          datasets: [
+          {% for category in categories %}
+          {
+            label: '{{category.name}}',
+            data: [
+              {% for month in year.months %}
+              {{month.total_amount(category)}},
+              {% endfor %}
+            ],
+            borderWidth: 1
+          },
+          {% endfor %}
+          ]
+        },
+        options: {
+          responsive: true,
+          interaction: {
+            intersect: false,
+          },
+          scales: {
+            x: {
+              stacked: true,
+            },
+            y: {
+              stacked: true,
+              ticks: {
+                  // Include a pound sign in the ticks
+                  callback: function(value, index, ticks) {
+                      return '£' + value;
+                  }
+              }
+            }
+          },
+          plugins: {
+            legend: {
+              position: 'right',
+            },
+          },
+        }
+      });
+      {% endfor %}
+    </script>
+
   </body>
 </html>

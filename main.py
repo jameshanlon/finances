@@ -116,11 +116,6 @@ if __name__ == "__main__":
         action="store_true",
         help="Display transactions in a table",
     )
-    parser.add_argument(
-        "--report-summary",
-        action="store_true",
-        help="Display a summary of transactions",
-    )
     parser.add_argument("--debug", action="store_true", help="Print debugging messages")
     args = parser.parse_args()
     # Setup logging.

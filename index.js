@@ -1,3 +1,4 @@
 import 'bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import Sortable from 'sortablejs';
+import Chart from 'chart.js/auto';
+console.log(Chart)
