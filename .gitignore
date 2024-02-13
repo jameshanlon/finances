@@ -2,4 +2,5 @@ env/
 finances/__pycache__/
 *.pickle
 index.html
+month-*.html
 year-*.html

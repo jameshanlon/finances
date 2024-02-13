@@ -4,26 +4,30 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Finances</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
+          crossorigin="anonymous">
   </head>
   <body>
+    <div class="container">
     <h1>Finances</h1>
 
     {% for year in dataset.years | reverse %}
     <h2>{{year.index}}</h2>
-    <table class="table table-striped table-hover">
+    <table class="table table-sm table-striped table-hover">
       <thead>
         <tr>
           <th scope="col">Category</th>
           {% for month in months %}
           <th scope="col">
-            <a href="year-{{year.index}}.html#month-{{month.value}}">{{month.name}}</a>
+            <a href="month-{{month.value}}-{{year.index}}.html">{{month.name}}</a>
           </th>
           {% endfor %}
           <th scope="col">Total</th>
         </tr>
       </thead>
-      <tbody>
+      <tbody class="table-group-divider">
         {% for category in categories %}
         <tr>
           <th scope="row">{{category.name}}</th>
@@ -33,10 +37,20 @@
           <td>{{"£{:,.2f}".format(year.total_amount(category))}}</td>
         </tr>
         {% endfor %}
+        <tr class="table-primary">
+          <th scope="row">Balance</th>
+          {% for month in year.months %}
+          <td>{{"£{:,.2f}".format(month.balance())}}</td>
+          {% endfor %}
+          <td>{{"£{:,.2f}".format(year.balance())}}</td>
+        </tr>
       </tbody>
     </table>
     {% endfor %}
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+            crossorigin="anonymous"></script>
   </body>
 </html>

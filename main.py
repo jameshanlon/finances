@@ -112,13 +112,6 @@ if __name__ == "__main__":
         help="Report a particular year (from 2016)",
     )
     parser.add_argument(
-        "--month",
-        type=int,
-        default=None,
-        choices=range(1, 12),
-        help="Report a particular month (1-12)",
-    )
-    parser.add_argument(
         "--report-transactions",
         action="store_true",
         help="Display transactions in a table",
@@ -135,4 +128,4 @@ if __name__ == "__main__":
         logging.basicConfig(level=logging.DEBUG)
     else:
         logging.basicConfig(level=logging.INFO)
-    main(args)
+    return main(args)

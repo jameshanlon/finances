@@ -202,6 +202,12 @@ class Month:
             sum([x.amount for x in self.transactions if x.category == category])
         )
 
+    def balance(self) -> float:
+        """
+        Return the balance of all transactions.
+        """
+        return float(sum(x.amount for x in self.transactions))
+
 
 @dataclass
 class Year:
@@ -221,6 +227,12 @@ class Year:
         Return the total amount in a given category of transaction.
         """
         return float(sum(x.total_amount(category) for x in self.months))
+
+    def balance(self) -> float:
+        """
+        Return the balance of all transactions.
+        """
+        return float(sum(x.balance() for x in self.months))
 
 
 @dataclass
@@ -408,11 +420,16 @@ def render_html(dataset: Finances):
         logging.info(f"Wrote {filename}")
     # Years
     for year in dataset.years:
-        template = environment.get_template("year.html")
-        content = template.render(
-            year=year.index, months=MonthInYear, categories=Category, dataset=year
-        )
-        filename = f"year-{year.index}.html"
-        with open(filename, mode="w", encoding="utf-8") as f:
-            f.write(content)
-            logging.info(f"Wrote {filename}")
+        for month in year.months:
+            template = environment.get_template("month.html")
+            content = template.render(
+                year=year.index,
+                month=month.index,
+                months=MonthInYear,
+                categories=Category,
+                dataset=month,
+            )
+            filename = f"month-{month.index}-{year.index}.html"
+            with open(filename, mode="w", encoding="utf-8") as f:
+                f.write(content)
+                logging.info(f"Wrote {filename}")
