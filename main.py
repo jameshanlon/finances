@@ -9,8 +9,7 @@ import pickle
 from pathlib import Path
 
 """
-To do:
-    - Skip 'Summary' and 'Template' sheet names.
+Finances command-line interface.
 """
 
 gc = gspread.service_account()
