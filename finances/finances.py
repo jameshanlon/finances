@@ -8,6 +8,7 @@ from typing import List, Dict
 import datetime
 import logging
 from jinja2 import Environment, FileSystemLoader
+from pathlib import Path
 
 MONTHS_IN_YEAR = 12
 
@@ -409,11 +410,11 @@ class MonthInYear(Enum):
     Dec = 12
 
 
-def render_html(dataset: Finances):
+def render_html(dataset: Finances, output_dir: Path):
     environment = Environment(loader=FileSystemLoader("templates/"))
     template = environment.get_template("index.html")
     content = template.render(months=MonthInYear, categories=Category, dataset=dataset)
-    filename = "index.html"
+    filename = output_dir / "index.html"
     # Summary
     with open(filename, mode="w", encoding="utf-8") as f:
         f.write(content)
@@ -429,7 +430,7 @@ def render_html(dataset: Finances):
                 categories=Category,
                 dataset=month,
             )
-            filename = f"month-{month.index}-{year.index}.html"
+            filename = output_dir / f"transactions-{month.index}-{year.index}.html"
             with open(filename, mode="w", encoding="utf-8") as f:
                 f.write(content)
                 logging.info(f"Wrote {filename}")

@@ -1,8 +1,6 @@
 env/
 finances/__pycache__/
 *.pickle
-index.html
-month-*.html
-year-*.html
 bundle.js*
 node_modules/
+output/

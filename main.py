@@ -93,7 +93,11 @@ def main(args):
 
     # Load pickled data.
     dataset = finances.Finances([load_year(x, args.fetch) for x in sheets.keys()])
-    finances.render_html(dataset)
+    # Output path.
+    output_path = Path(args.output_dir)
+    output_path.mkdir(exist_ok=True)
+    # Render the HTML
+    finances.render_html(dataset, output_path)
     return 0
 
 
@@ -109,6 +113,11 @@ if __name__ == "__main__":
         default=None,
         choices=range(2016, 2100),
         help="Report a particular year (from 2016)",
+    )
+    parser.add_argument(
+        "--output-dir",
+        default="output",
+        help="Specify an output directory (default: 'output')",
     )
     parser.add_argument(
         "--report-transactions",
