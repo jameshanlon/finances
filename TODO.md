@@ -1,6 +1,5 @@
 # To dos
 
-- Allow tables to be sorted by column.
-- Allow tables to be filtered.
+- Install sorttable.js and main.css into output directory.
 - Serialise financial data to a text format.
 - In parsing, skip 'Summary' and 'Template' sheet names.

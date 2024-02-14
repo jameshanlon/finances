@@ -3,6 +3,8 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="main.css">
+    <script src="sorttable.js"></script>
     <title>Finances</title>
   </head>
   <body>
@@ -14,13 +16,15 @@
 
     <div><canvas id="chart-{{year.index}}"></canvas></div>
 
-    <table class="table table-sm table-striped table-hover">
+    <table class="table table-sm table-striped table-hover sortable">
       <thead>
         <tr>
           <th scope="col">Category</th>
           {% for month in months %}
           <th scope="col">
-            <a href="transactions-{{month.value}}-{{year.index}}.html">{{month.name}}</a>
+            <a href="transactions-{{month.value}}-{{year.index}}.html">
+              {{month.name}}
+            </a>
           </th>
           {% endfor %}
           <th scope="col">Totals</th>
@@ -31,11 +35,19 @@
         <tr>
           <th scope="row">{{category.name}}</th>
           {% for month in year.months %}
-          <td>{{"£{:,.2f}".format(month.total_amount(category))}}</td>
+          <td sorttable_customkey="{{month.total_amount(category)}}">
+            {{"£{:,.2f}".format(month.total_amount(category))}}
+          </td>
           {% endfor %}
-          <td>{{"£{:,.2f}".format(year.total_amount(category))}}</td>
+          <td sorttable_customkey="{{year.total_amount(category)}}">
+            {{"£{:,.2f}".format(year.total_amount(category))}}
+          </td>
         </tr>
         {% endfor %}
+      </tbody>
+    </table>
+    <table class="table table-sm">
+      <tbody>
         <tr class="table-primary">
           <th scope="row">Balance</th>
           {% for month in year.months %}

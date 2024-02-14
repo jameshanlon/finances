@@ -3,6 +3,8 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="main.css">
+    <script src="sorttable.js"></script>
     <title>Transactions {{months(month).name}} {{year}}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
   </head>
@@ -16,9 +18,38 @@
     {{dataset.num_transactions()}} transactions
     </p>
 
+    <script>
+      // https://stackoverflow.com/questions/51187477/how-to-filter-a-html-table-using-simple-javascript
+      function filterTransactions() {
+        var input, filter, table, tr, td, i;
+        input = document.getElementById("filterTransactions");
+        filter = input.value.toUpperCase();
+        table = document.getElementById("transactions");
+        tr = table.getElementsByTagName("tr");
+        for (var i = 0; i < tr.length; i++) {
+          var tds = tr[i].getElementsByTagName("td");
+          var flag = false;
+          for (var j = 0; j < tds.length; j++){
+            var td = tds[j];
+            if (td.innerHTML.toUpperCase().indexOf(filter) > -1) {
+              flag = true;
+            }
+          }
+          if (flag) {
+            tr[i].style.display = "";
+          } else {
+            tr[i].style.display = "none";
+          }
+        }
+      }
+    </script>
+
     <div style="width:500px"><canvas id="pie-chart-{{month.index}}-{{year.index}}"></canvas></div>
 
-    <table class="table table-sm table-striped table-hover">
+    <p><input type="text" id="filterTransactions" onkeyup="filterTransactions()"
+           placeholder="Filter"></p>
+
+    <table id="transactions" class="table table-sm table-striped table-hover sortable">
       <thead>
         <tr>
           <th scope="col">Date</th>
@@ -32,11 +63,15 @@
       <tbody class="table-group-divider">
         {% for transaction in dataset.transactions %}
         <tr>
-          <td>{{"{:%d-%m-%Y}".format(transaction.date)}}</td>
+          <td sorttable_customkey="{{"{:%Y%m%d}".format(transaction.date)}}">
+            {{"{:%d-%m-%Y}".format(transaction.date)}}
+          </td>
           <td>{{transaction.transaction_type.name}}</td>
           <td>{{transaction.category.name}}</td>
           <td>{{transaction.description}}</td>
-          <td>{{"£{:,.2f}".format(transaction.amount)}}</td>
+          <td sorttable_customkey="{{transaction.amount}}">
+            {{"£{:,.2f}".format(transaction.amount)}}
+          </td>
           <td>{{transaction.note}}</td>
         </tr>
         {% endfor %}
