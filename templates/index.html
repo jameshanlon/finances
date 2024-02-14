@@ -19,7 +19,7 @@
     <table class="table table-sm table-striped table-hover sortable">
       <thead>
         <tr>
-          <th scope="col">Category</th>
+          <th scope="col" style="width:10em">Category</th>
           {% for month in months %}
           <th scope="col">
             <a href="transactions-{{month.value}}-{{year.index}}.html">
@@ -49,7 +49,7 @@
     <table class="table table-sm">
       <tbody>
         <tr class="table-primary">
-          <th scope="row">Balance</th>
+          <th scope="row" style="width:10em">Balance</th>
           {% for month in year.months %}
           <td>{{"£{:,.2f}".format(month.balance())}}</td>
           {% endfor %}
