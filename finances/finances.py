@@ -131,7 +131,7 @@ class Category(Enum):
             return Category.CASH
         elif label == "house":
             return Category.HOUSE
-        elif label == "children" or label == "finn" or label == "baby":
+        elif label == "children" or label == "baby":
             return Category.CHILDREN
         elif label == "transport" or label.startswith("car"):
             return Category.TRANSPORT
