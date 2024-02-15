@@ -7,6 +7,7 @@ from typing import Any
 import logging
 import pickle
 from pathlib import Path
+import shutil
 
 """
 Finances command-line interface.
@@ -81,24 +82,49 @@ def load_year(year_index: int, fetch: bool) -> finances.Year:
     return year
 
 
+DIRS = ["static"]
+FILES = ["output/bundle.js"]
+
+
 def main(args):
 
     if args.fetch:
         if not args.year:
-            logging.error("Specify a year to fetch (--year)")
-            return 1
+            raise RuntimeError("Specify a year to fetch (--year)")
+
         # Just fetch a particular year.
         fetch_year(args.year, args.fetch)
-        return 0
+        return
 
     # Load pickled data.
     dataset = finances.Finances([load_year(x, args.fetch) for x in sheets.keys()])
+
     # Output path.
     output_path = Path(args.output_dir)
     output_path.mkdir(exist_ok=True)
-    # Render the HTML
+
+    # Render the HTML.
     finances.render_html(dataset, output_path)
-    return 0
+
+    # Copy directories into the output directory.
+    for d in DIRS:
+        src_path = Path(d)
+        if not src_path.exists():
+            raise RuntimeError(f"Directory {d} does not exist")
+        dst_path = output_path / src_path
+        if src_path != dst_path:
+            shutil.copytree(src_path, output_path, dirs_exist_ok=True)
+            logging.info(f"Copied {src_path} to {dst_path}")
+
+    # Copy files into the output directory.
+    for f in FILES:
+        src_path = Path(f)
+        if not src_path.exists():
+            raise RuntimeError(f"File {f} does not exist")
+        dst_path = output_path / src_path.name
+        if src_path != dst_path:
+            shutil.copyfile(src_path, dst_path)
+            logging.info(f"Copied {src_path} to {dst_path}")
 
 
 if __name__ == "__main__":
