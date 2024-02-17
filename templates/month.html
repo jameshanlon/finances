@@ -86,10 +86,14 @@
       new Chart(ctx, {
         type: 'pie',
         data: {
-          labels: [{% for category in categories %} '{{category.name}}', {% endfor %} ],
+          labels: [
+            {% for category in categories if category != categories.INCOME%}
+            '{{category.name}}',
+            {% endfor %}
+          ],
           datasets: [{
             data: [
-              {% for category in categories %}
+              {% for category in categories if category != categories.INCOME %}
               {{dataset.total_amount(category)}},
               {% endfor %}
             ],
