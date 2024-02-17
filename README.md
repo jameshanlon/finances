@@ -12,19 +12,29 @@ $ source env/bin/activate
 $ pip install -r requirements.txt
 ...
 $ pre-commit install
+...
 ```
 
 Setup NPM:
 ```
 $ wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
-$ nvm install 20
+...
+$ npm install 20
+...
 $ npm install
+...
 ```
 
 Webpack:
 ```
 $ nvm use 20
 $ npm run build
+...
+```
+
+Run the unit tests:
+```
+$ python tests.py
 ```
 
 Fetch data from spreadsheets (individually to avoid rate limiting), eg:
