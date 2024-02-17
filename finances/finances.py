@@ -8,6 +8,7 @@ import datetime
 import logging
 from jinja2 import Environment, FileSystemLoader
 from pathlib import Path
+import shutil
 
 MONTHS_IN_YEAR = 12
 
@@ -177,6 +178,14 @@ class Finances:
 
     years: List[Year]
 
+    DIRS = ["static"]
+    FILES = ["output/bundle.js"]
+
+    def create_html_report(self, output_dir: Path):
+        self.render_html(output_dir)
+        self.copy_web_dirs(output_dir)
+        self.copy_web_files(output_dir)
+
     def render_html(self, output_dir: Path):
         environment = Environment(loader=FileSystemLoader("templates/"))
         template = environment.get_template("index.html")
@@ -201,3 +210,29 @@ class Finances:
                 with open(filename, mode="w", encoding="utf-8") as f:
                     f.write(content)
                     logging.info(f"Wrote {filename}")
+
+    def copy_web_dirs(self, output_dir: Path):
+        """
+        Copy directories into the output directory.
+        """
+        for d in self.DIRS:
+            src_path = Path(d)
+            if not src_path.exists():
+                raise RuntimeError(f"Directory {d} does not exist")
+            dst_path = output_dir / src_path
+            if src_path != dst_path:
+                shutil.copytree(src_path, output_dir, dirs_exist_ok=True)
+                logging.info(f"Copied {src_path} to {dst_path}")
+
+    def copy_web_files(self, output_dir: Path):
+        """
+        Copy files into the output directory.
+        """
+        for f in self.FILES:
+            src_path = Path(f)
+            if not src_path.exists():
+                raise RuntimeError(f"File {f} does not exist")
+            dst_path = output_dir / src_path.name
+            if src_path != dst_path:
+                shutil.copyfile(src_path, dst_path)
+                logging.info(f"Copied {src_path} to {dst_path}")

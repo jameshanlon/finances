@@ -15,7 +15,6 @@ from typing import Any
 import logging
 import pickle
 from pathlib import Path
-import shutil
 import datetime
 from dateutil import parser as dateparser
 
@@ -328,9 +327,6 @@ def load_year(year_index: int, fetch: bool) -> Year:
     return year
 
 
-DIRS = ["static"]
-FILES = ["output/bundle.js"]
-
 SHEETS = {
     2016: Sheet("Spending-2016", read_old_worksheet_b),
     2017: Sheet("Spending-2017", read_old_worksheet_b),
@@ -362,27 +358,7 @@ def main(args):
     output_path.mkdir(exist_ok=True)
 
     # Render the HTML.
-    dataset.render_html(output_path)
-
-    # Copy directories into the output directory.
-    for d in DIRS:
-        src_path = Path(d)
-        if not src_path.exists():
-            raise RuntimeError(f"Directory {d} does not exist")
-        dst_path = output_path / src_path
-        if src_path != dst_path:
-            shutil.copytree(src_path, output_path, dirs_exist_ok=True)
-            logging.info(f"Copied {src_path} to {dst_path}")
-
-    # Copy files into the output directory.
-    for f in FILES:
-        src_path = Path(f)
-        if not src_path.exists():
-            raise RuntimeError(f"File {f} does not exist")
-        dst_path = output_path / src_path.name
-        if src_path != dst_path:
-            shutil.copyfile(src_path, dst_path)
-            logging.info(f"Copied {src_path} to {dst_path}")
+    dataset.create_html_report(output_path)
 
 
 if __name__ == "__main__":
