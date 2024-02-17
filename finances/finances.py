@@ -141,6 +141,12 @@ class Year:
         """
         return float(sum(x.total_amount(category) for x in self.months))
 
+    def average_amount(self, category: Category) -> float:
+        """
+        Return the total amount in a given category of transaction.
+        """
+        return self.total_amount(category) / len(self.months)
+
     def balance(self) -> float:
         """
         Return the balance of all transactions.
@@ -174,16 +180,14 @@ class Finances:
     def render_html(self, output_dir: Path):
         environment = Environment(loader=FileSystemLoader("templates/"))
         template = environment.get_template("index.html")
-        content = template.render(
-            months=MonthInYear, categories=Category, dataset=dataset
-        )
+        content = template.render(months=MonthInYear, categories=Category, dataset=self)
         filename = output_dir / "index.html"
         # Summary
         with open(filename, mode="w", encoding="utf-8") as f:
             f.write(content)
             logging.info(f"Wrote {filename}")
         # Years
-        for year in dataset.years:
+        for year in self.years:
             for month in year.months:
                 template = environment.get_template("month.html")
                 content = template.render(

@@ -19,7 +19,7 @@
     <table class="table table-sm table-striped table-hover sortable">
       <thead>
         <tr>
-          <th scope="col" style="width:10em">Category</th>
+          <th scope="col">Category</th>
           {% for month in months %}
           <th scope="col">
             <a href="transactions-{{month.value}}-{{year.index}}.html">
@@ -27,7 +27,8 @@
             </a>
           </th>
           {% endfor %}
-          <th scope="col">Totals</th>
+          <th scope="col">Year total</th>
+          <th scope="col">Year average</th>
         </tr>
       </thead>
       <tbody class="table-group-divider">
@@ -40,22 +41,24 @@
           </td>
           {% endfor %}
           <td sorttable_customkey="{{year.total_amount(category)}}">
-            {{"£{:,.2f}".format(year.total_amount(category))}}
+            <strong>{{"£{:,.2f}".format(year.total_amount(category))}}</strong>
+          </td>
+          <td sorttable_customkey="{{year.average_amount(category)}}">
+            <strong>{{"£{:,.2f}".format(year.average_amount(category))}}</strong>
           </td>
         </tr>
         {% endfor %}
       </tbody>
-    </table>
-    <table class="table table-sm">
-      <tbody>
+      <tfoot>
         <tr class="table-primary">
-          <th scope="row" style="width:10em">Balance</th>
+          <th scope="row">Balance</th>
           {% for month in year.months %}
-          <td>{{"£{:,.2f}".format(month.balance())}}</td>
+          <td><strong>{{"£{:,.2f}".format(month.balance())}}</strong></td>
           {% endfor %}
-          <td>{{"£{:,.2f}".format(year.balance())}}</td>
+          <td><strong>{{"£{:,.2f}".format(year.balance())}}</strong></td>
+          <td>-</td>
         </tr>
-      </tbody>
+      </tfoot>
     </table>
     {% endfor %}
 
