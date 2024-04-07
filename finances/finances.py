@@ -43,18 +43,18 @@ class TransactionType(Enum):
 
 class Category(Enum):
     INCOME = 1
-    SAVING = 2
-    BILLS = 3
-    DONATION = 4
-    SHOPPING = 5
-    FOOD_AND_DRINK = 6
-    CASH = 7
-    HOUSE = 8
-    CHILDREN = 9
-    TRANSPORT = 10
-    MISC = 11
-    TRANSFERS = 12
-    TRAVEL = 13
+    TRANSFERS = 2
+    SAVING = 3
+    BILLS = 4
+    DONATION = 5
+    SHOPPING = 6
+    FOOD_AND_DRINK = 7
+    CASH = 8
+    HOUSE = 9
+    CHILDREN = 10
+    TRANSPORT = 11
+    TRAVEL = 12
+    MISC = 13
 
     def __str__(self):
         return str(self.value)
