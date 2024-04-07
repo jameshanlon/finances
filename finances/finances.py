@@ -54,6 +54,7 @@ class Category(Enum):
     TRANSPORT = 10
     MISC = 11
     TRANSFERS = 12
+    TRAVEL = 13
 
     def __str__(self):
         return str(self.value)

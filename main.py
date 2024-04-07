@@ -64,6 +64,8 @@ def category_from_str(label: str) -> Category:
         return Category.CHILDREN
     elif label == "transport" or label.startswith("car"):
         return Category.TRANSPORT
+    elif label == "travel":
+        return Category.TRAVEL
     elif label == "misc":
         return Category.MISC
     elif label == "transfers":
