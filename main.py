@@ -294,11 +294,11 @@ def fetch_month(sheet, year_index: int, month_index: int) -> Month:
     return SHEETS[year_index].reader(values, year_index, month_index)
 
 
-def fetch_year(year_index: int, fetch: bool) -> Year:
+def fetch_year(year_index: int, fetch: bool, output_dir: Path) -> Year:
     """
     Fetch year date from Google Sheets.
     """
-    filename = f"finances-{year_index}.pickle"
+    filename = output_dir / f"finances-{year_index}.pickle"
     sheet = gc.open(SHEETS[year_index].name)
     logging.info(
         f"Opening spreadsheet {SHEETS[year_index].name}, "
@@ -315,14 +315,14 @@ def fetch_year(year_index: int, fetch: bool) -> Year:
     return year
 
 
-def load_year(year_index: int, fetch: bool) -> Year:
+def load_year(year_index: int, fetch: bool, output_dir: Path) -> Year:
     """
     Load a year from a pikcle file.
     """
-    filename = f"finances-{year_index}.pickle"
+    filename = output_dir / f"finances-{year_index}.pickle"
     if not Path(filename).exists():
         logging.warning(f"Pickle file {filename} does not exist, skipping")
-        return
+        return Year(year_index)
     with open(filename, "rb") as f:
         year = pickle.load(f)
         logging.info(f"Read {filename}")
@@ -344,20 +344,20 @@ SHEETS = {
 
 def main(args):
 
+    # Output path.
+    output_path = Path(args.output_dir)
+    output_path.mkdir(exist_ok=True)
+
     if args.fetch:
         if not args.year:
             raise RuntimeError("Specify a year to fetch (--year)")
 
         # Just fetch a particular year.
-        fetch_year(args.year, args.fetch)
+        fetch_year(args.year, args.fetch, output_path)
         return
 
     # Load pickled data.
-    dataset = Finances([load_year(x, args.fetch) for x in SHEETS.keys()])
-
-    # Output path.
-    output_path = Path(args.output_dir)
-    output_path.mkdir(exist_ok=True)
+    dataset = Finances([load_year(x, args.fetch, output_path) for x in SHEETS.keys()])
 
     # Render the HTML.
     dataset.create_html_report(output_path)

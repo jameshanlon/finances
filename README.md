@@ -5,16 +5,6 @@ reports.
 
 ## Getting started
 
-Setup Python:
-```
-$ python -m venv env
-$ source env/bin/activate
-$ pip install -r requirements.txt
-...
-$ pre-commit install
-...
-```
-
 Setup NPM:
 ```
 $ wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
@@ -25,31 +15,26 @@ $ npm install
 ...
 ```
 
-Webpack:
+Setup environment:
 ```
-$ nvm use 20
-$ npm run build
-...
-```
-
-Run the unit tests:
-```
-$ python tests.py
+$ make install
+$ make test
 ```
 
-Fetch data from spreadsheets (individually to avoid rate limiting), eg:
+Fetch data from spreadsheets, eg:
 ```
-$ python main.py --fetch 2024
+$ make fetch-all
+$ make fetch-latest
+```
+
+Run a server to view the HTML:
+```
+$ make serve
 ```
 
 Read all pickled data and generate the HTML report:
 ```
 $ python main.py
-```
-
-Run a server to view the HTML:
-```
-$ python -m http.server 12345
 ```
 
 ## Google sheets API access

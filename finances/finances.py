@@ -147,6 +147,8 @@ class Year:
         """
         Return the total amount in a given category of transaction.
         """
+        if len(self.months) == 0:
+            return 0.0
         return self.total_amount(category) / len(self.months)
 
     def balance(self) -> float:
