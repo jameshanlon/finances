@@ -50,6 +50,8 @@ def category_from_str(label: str) -> Category:
         return Category.SAVING
     elif label == "bills" or label.startswith("monthly"):
         return Category.BILLS
+    elif label == "mortgage":
+        return Category.MORTGAGE
     elif label == "donation" or label == "donations":
         return Category.DONATION
     elif label == "shopping":
