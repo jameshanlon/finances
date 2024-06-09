@@ -27,13 +27,21 @@ fetch-latest:
 fetch-all:
 	. venv/bin/activate && ( \
 		python main.py --year 2016 --fetch --output-dir ${OUTPUT_DIR}; \
+		sleep 15; \
 		python main.py --year 2017 --fetch --output-dir ${OUTPUT_DIR}; \
+		sleep 15; \
 		python main.py --year 2018 --fetch --output-dir ${OUTPUT_DIR}; \
+		sleep 15; \
 		python main.py --year 2019 --fetch --output-dir ${OUTPUT_DIR}; \
+		sleep 15; \
 		python main.py --year 2020 --fetch --output-dir ${OUTPUT_DIR}; \
+		sleep 15; \
 		python main.py --year 2021 --fetch --output-dir ${OUTPUT_DIR}; \
+		sleep 15; \
 		python main.py --year 2022 --fetch --output-dir ${OUTPUT_DIR}; \
+		sleep 15; \
 		python main.py --year 2023 --fetch --output-dir ${OUTPUT_DIR}; \
+		sleep 15; \
 		python main.py --year 2024 --fetch --output-dir ${OUTPUT_DIR}; \
 		python main.py --output-dir ${OUTPUT_DIR} \
 	)
