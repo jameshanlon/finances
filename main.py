@@ -56,7 +56,7 @@ def category_from_str(label: str) -> Category:
         return Category.DONATION
     elif label == "shopping":
         return Category.SHOPPING
-    elif label == "food and drink" or label == "food, cafes, pub":
+    elif label == "food and drink" or label == "food, cafes, pub" or label == "pub":
         return Category.FOOD_AND_DRINK
     elif label == "cash":
         return Category.CASH
@@ -66,7 +66,7 @@ def category_from_str(label: str) -> Category:
         return Category.CHILDREN
     elif label == "transport" or label.startswith("car"):
         return Category.TRANSPORT
-    elif label == "travel":
+    elif label == "travel" or label == "holiday":
         return Category.TRAVEL
     elif label == "misc":
         return Category.MISC
@@ -124,6 +124,8 @@ def transaction_type_from_str(label: str) -> TransactionType:
         return TransactionType.RFP
     elif label == "JNL":
         return TransactionType.JNL
+    elif label == "SO":
+        return TransactionType.SO
     elif label == "UNKNOWN" or label == "":
         return TransactionType.UNKNOWN
     else:

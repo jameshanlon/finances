@@ -36,6 +36,7 @@ class TransactionType(Enum):
     POS = 10
     RFP = 20
     UNKNOWN = 22
+    SO = 23
 
     def __str__(self):
         return str(self.value)
