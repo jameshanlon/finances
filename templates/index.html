@@ -18,8 +18,11 @@
     {% endfor %}
     </p>
 
-    <h2>Summary of all years</h2>
+    <h2>Summary</h2>
     <div><canvas id="all-years-chart"></canvas></div>
+
+    <h2>Categories over time</h2>
+    <div><canvas id="categories-chart"></canvas></div>
 
     {% for year in dataset.years | reverse %}
     <a name="year-{{year.index}}"></a>
@@ -75,11 +78,11 @@
 
     </div>
     <script src="bundle.js"></script>
+
     <!-- Summary graph for all years-->
     <script>
-      const ctx = document.getElementById('all-years-chart');
-
-      new Chart(ctx, {
+      const summary_ctx = document.getElementById('all-years-chart');
+      new Chart(summary_ctx, {
         type: 'bar',
         data: {
           labels: [{% for year in dataset.years %} '{{year.index}}', {% endfor %} ],
@@ -124,6 +127,52 @@
         }
       });
     </script>
+
+    <!-- Summary graph for each category over all years-->
+    <script>
+      const categories_ctx = document.getElementById('categories-chart');
+      new Chart(categories_ctx, {
+        type: 'line',
+        data: {
+          labels: [{% for year in dataset.years %} '{{year.index}}', {% endfor %} ],
+          datasets: [
+          {% for category in categories if category.value != 1 %}
+          {
+            label: '{{category.name}}',
+            data: [
+              {% for year in dataset.years %}
+              {{year.average_amount(category)}},
+              {% endfor %}
+            ],
+            borderWidth: 1
+          },
+          {% endfor %}
+          ]
+        },
+        options: {
+          responsive: true,
+          interaction: {
+            intersect: false,
+          },
+          scales: {
+            y: {
+              ticks: {
+                  // Include a pound sign in the ticks
+                  callback: function(value, index, ticks) {
+                      return '£' + value;
+                  }
+              }
+            }
+          },
+          plugins: {
+            legend: {
+              position: 'right',
+            },
+          },
+        }
+      });
+    </script>
+
     <!--Summary graph for each year-->
     <script>
       {% for year in dataset.years | reverse %}

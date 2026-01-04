@@ -20,7 +20,7 @@ run:
 
 fetch-latest:
 	. venv/bin/activate && ( \
-		python main.py --year 2024 --fetch --output-dir ${OUTPUT_DIR}; \
+		python main.py --year 2025 --fetch --output-dir ${OUTPUT_DIR}; \
 		python main.py --output-dir ${OUTPUT_DIR} \
 	)
 
