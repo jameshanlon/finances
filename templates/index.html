@@ -21,7 +21,7 @@
     <h2>Summary</h2>
     <div><canvas id="all-years-chart"></canvas></div>
 
-    <h2>Categories over time</h2>
+    <h2>Category averages over time</h2>
     <div><canvas id="categories-chart"></canvas></div>
 
     {% for year in dataset.years | reverse %}
@@ -136,7 +136,7 @@
         data: {
           labels: [{% for year in dataset.years %} '{{year.index}}', {% endfor %} ],
           datasets: [
-          {% for category in categories if category.value != 1 %}
+          {% for category in categories %}
           {
             label: '{{category.name}}',
             data: [
