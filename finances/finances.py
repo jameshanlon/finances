@@ -184,7 +184,7 @@ class Finances:
     years: List[Year]
 
     DIRS = ["static"]
-    FILES = ["output/bundle.js"]
+    FILES = ["static/js/sorttable.js", "output/bundle.js"]
 
     def create_html_report(self, output_dir: Path):
         self.render_html(output_dir)
