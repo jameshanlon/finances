@@ -344,6 +344,7 @@ SHEETS = {
     2023: Sheet("Spending-2023", read_old_worksheet_a),
     2024: Sheet("Spending-2024", read_worksheet),
     2025: Sheet("Spending-2025", read_worksheet),
+    2026: Sheet("Spending-2026", read_worksheet),
 }
 
 
