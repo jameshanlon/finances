@@ -255,7 +255,14 @@ def read_worksheet(table, year_index: int, month_index: int) -> Month:
     Read a new-format worksheet and return a Month.
     """
     month = Month(month_index + 1)
-    assert table[0] == ["Date", "Type", "Category", "Description", "Amount", "Note"]
+    assert table[0][0:6] == [
+        "Date",
+        "Type",
+        "Category",
+        "Description",
+        "Amount",
+        "Note",
+    ]
     for i, row in enumerate(table[1:]):
         try:
             # Parse the transaction.
