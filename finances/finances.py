@@ -100,12 +100,12 @@ class Month:
         for transaction in self.transactions:
             table.append(
                 [
-                    f"{t.date:%d-%m-%Y}",
-                    t.transaction_type.name,
-                    t.category.name,
-                    t.description,
-                    t.amount,
-                    t.note,
+                    f"{transaction.date:%d-%m-%Y}",
+                    transaction.transaction_type.name,
+                    transaction.category.name,
+                    transaction.description,
+                    transaction.amount,
+                    transaction.note,
                 ]
             )
         print()

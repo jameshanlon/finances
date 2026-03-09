@@ -102,7 +102,7 @@ def transaction_type_from_str(label: str) -> TransactionType:
         return TransactionType.ONL
     elif label == "POS" or label == "DEBIT_CARD":
         return TransactionType.POS
-    elif label == "ATM" or label == "CSH" or label == "CPT" or label == "CASHPOINT":
+    elif label == "ATM" or label == "CSH" or label == "CASHPOINT":
         return TransactionType.CASH
     elif label == "DCR":
         return TransactionType.DCR
