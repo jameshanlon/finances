@@ -1,6 +1,6 @@
 venv/
 env/
-finances/__pycache__/
+__pycache__/
 *.pickle
 bundle.js*
 node_modules/
