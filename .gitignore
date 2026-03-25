@@ -5,3 +5,5 @@ finances/__pycache__/
 bundle.js*
 node_modules/
 output/
+.worktrees/
+dist/
