@@ -1,14 +1,12 @@
-from collections import defaultdict
 from dataclasses import dataclass
 from enum import Enum
 from rich import print
 from tabulate import tabulate
-from typing import List, Dict
+from typing import List
 import datetime
+import json
 import logging
-from jinja2 import Environment, FileSystemLoader
 from pathlib import Path
-import shutil
 
 MONTHS_IN_YEAR = 12
 
@@ -64,10 +62,6 @@ class Category(Enum):
 
 @dataclass
 class Transaction:
-    """
-    A class to represent a single transaction.
-    """
-
     date: datetime.date
     transaction_type: TransactionType
     category: Category
@@ -80,10 +74,6 @@ class Transaction:
 
 
 class Month:
-    """
-    A class to hold a set of transations within one month.
-    """
-
     index: int
     transactions: List[Transaction]
 
@@ -100,38 +90,28 @@ class Month:
         for transaction in self.transactions:
             table.append(
                 [
-                    f"{t.date:%d-%m-%Y}",
-                    t.transaction_type.name,
-                    t.category.name,
-                    t.description,
-                    t.amount,
-                    t.note,
+                    f"{transaction.date:%d-%m-%Y}",
+                    transaction.transaction_type.name,
+                    transaction.category.name,
+                    transaction.description,
+                    transaction.amount,
+                    transaction.note,
                 ]
             )
         print()
         print(tabulate(table, headers, tablefmt="simple_outline"))
 
     def total_amount(self, category: Category) -> float:
-        """
-        Return the total amount in a given category of transaction.
-        """
         return float(
             sum([x.amount for x in self.transactions if x.category == category])
         )
 
     def balance(self) -> float:
-        """
-        Return the balance of all transactions.
-        """
         return float(sum(x.amount for x in self.transactions))
 
 
 @dataclass
 class Year:
-    """
-    A class to hold 12 months of transactions.
-    """
-
     index: int
     months: List[Month]
 
@@ -140,23 +120,14 @@ class Year:
         self.months = []
 
     def total_amount(self, category: Category) -> float:
-        """
-        Return the total amount in a given category of transaction.
-        """
         return float(sum(x.total_amount(category) for x in self.months))
 
     def average_amount(self, category: Category) -> float:
-        """
-        Return the total amount in a given category of transaction.
-        """
         if len(self.months) == 0:
             return 0.0
         return self.total_amount(category) / len(self.months)
 
     def balance(self) -> float:
-        """
-        Return the balance of all transactions.
-        """
         return float(sum(x.balance() for x in self.months))
 
 
@@ -177,67 +148,36 @@ class MonthInYear(Enum):
 
 @dataclass
 class Finances:
-    """
-    A class to hold finance data.
-    """
-
     years: List[Year]
 
-    DIRS = ["static"]
-    FILES = ["static/js/sorttable.js", "output/bundle.js"]
-
-    def create_html_report(self, output_dir: Path):
-        self.render_html(output_dir)
-        self.copy_web_dirs(output_dir)
-        self.copy_web_files(output_dir)
-
-    def render_html(self, output_dir: Path):
-        environment = Environment(loader=FileSystemLoader("templates/"))
-        template = environment.get_template("index.html")
-        content = template.render(months=MonthInYear, categories=Category, dataset=self)
-        filename = output_dir / "index.html"
-        # Summary
-        with open(filename, mode="w", encoding="utf-8") as f:
-            f.write(content)
-            logging.info(f"Wrote {filename}")
-        # Years
-        for year in self.years:
-            for month in year.months:
-                template = environment.get_template("month.html")
-                content = template.render(
-                    year=year.index,
-                    month=month.index,
-                    months=MonthInYear,
-                    categories=Category,
-                    dataset=month,
-                )
-                filename = output_dir / f"transactions-{month.index}-{year.index}.html"
-                with open(filename, mode="w", encoding="utf-8") as f:
-                    f.write(content)
-                    logging.info(f"Wrote {filename}")
-
-    def copy_web_dirs(self, output_dir: Path):
-        """
-        Copy directories into the output directory.
-        """
-        for d in self.DIRS:
-            src_path = Path(d)
-            if not src_path.exists():
-                raise RuntimeError(f"Directory {d} does not exist")
-            dst_path = output_dir / src_path
-            if src_path != dst_path:
-                shutil.copytree(src_path, output_dir, dirs_exist_ok=True)
-                logging.info(f"Copied {src_path} to {dst_path}")
-
-    def copy_web_files(self, output_dir: Path):
-        """
-        Copy files into the output directory.
-        """
-        for f in self.FILES:
-            src_path = Path(f)
-            if not src_path.exists():
-                raise RuntimeError(f"File {f} does not exist")
-            dst_path = output_dir / src_path.name
-            if src_path != dst_path:
-                shutil.copyfile(src_path, dst_path)
-                logging.info(f"Copied {src_path} to {dst_path}")
+    def to_json(self, output_dir: Path):
+        data = {
+            "categories": [c.name for c in Category],
+            "years": [
+                {
+                    "index": year.index,
+                    "months": [
+                        {
+                            "index": month.index,
+                            "transactions": [
+                                {
+                                    "date": t.date.isoformat(),
+                                    "type": t.transaction_type.name,
+                                    "category": t.category.name,
+                                    "description": t.description,
+                                    "amount": t.amount,
+                                    "note": t.note,
+                                }
+                                for t in month.transactions
+                            ],
+                        }
+                        for month in year.months
+                    ],
+                }
+                for year in self.years
+            ],
+        }
+        filename = output_dir / "data.json"
+        with open(filename, "w", encoding="utf-8") as f:
+            json.dump(data, f)
+        logging.info(f"Wrote {filename}")
