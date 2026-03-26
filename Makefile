@@ -7,7 +7,7 @@ install: venv
 			pip install -r requirements.txt; \
 			pre-commit install; \
 			nvm use 20; \
-			npm run build \
+			npm install && npm run build \
 		)
 
 venv:
@@ -51,7 +51,7 @@ fetch-all:
 	)
 
 serve:
-	. venv/bin/activate && python -m http.server
+	. venv/bin/activate && python -m http.server --directory ${OUTPUT_DIR}
 
 test:
 	. venv/bin/activate && python tests.py
@@ -59,3 +59,4 @@ test:
 clean:
 	rm -rfv venv
 	rm -rfv ${OUTPUT_DIR}
+	rm -rfv dist
