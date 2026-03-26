@@ -1,4 +1,5 @@
 import unittest
+import json
 from faker import Faker
 from finances.finances import (
     Transaction,
@@ -15,9 +16,6 @@ from pathlib import Path
 
 
 class FinanceTests(unittest.TestCase):
-    """
-    Unit tests for finances.
-    """
 
     def setUp(self):
         self.faker = Faker("en_UK")
@@ -43,7 +41,8 @@ class FinanceTests(unittest.TestCase):
         y.months.append(m)
         f = Finances([])
         f.years.append(y)
-        f.render_html(self.output_path)
+        f.to_json(self.output_path)
+        self.assertTrue((self.output_path / "data.json").exists())
 
     def test_many_transactions(self):
         MONTHS = range(1, 13)
@@ -58,8 +57,23 @@ class FinanceTests(unittest.TestCase):
                 y.months.append(m)
                 for i in range(NUM_TRANSACTIONS):
                     m.transactions.append(self.create_transaction(year, month))
-        f.render_html(self.output_path)
-        self.assertTrue((self.output_path / "index.html").exists())
+        f.to_json(self.output_path)
+        output_file = self.output_path / "data.json"
+        self.assertTrue(output_file.exists())
+        with open(output_file) as fh:
+            data = json.load(fh)
+        self.assertIn("categories", data)
+        self.assertIn("years", data)
+        self.assertEqual(len(data["years"]), len(YEARS))
+        first_year = data["years"][0]
+        self.assertIn("index", first_year)
+        self.assertIn("months", first_year)
+        first_month = first_year["months"][0]
+        self.assertIn("index", first_month)
+        self.assertIn("transactions", first_month)
+        first_txn = first_month["transactions"][0]
+        for key in ("date", "type", "category", "description", "amount", "note"):
+            self.assertIn(key, first_txn)
 
 
 if __name__ == "__main__":

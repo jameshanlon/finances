@@ -17,6 +17,7 @@ import pickle
 from pathlib import Path
 import datetime
 from dateutil import parser as dateparser
+import shutil
 
 """
 Finances command-line interface and integration with Google Sheets.
@@ -372,8 +373,14 @@ def main(args):
     # Load pickled data.
     dataset = Finances([load_year(x, args.fetch, output_path) for x in SHEETS.keys()])
 
-    # Render the HTML.
-    dataset.create_html_report(output_path)
+    # Write data to JSON.
+    dataset.to_json(output_path)
+    # Copy Vite build artifacts into output directory.
+    dist_path = Path(__file__).parent / "dist"
+    if dist_path.exists():
+        shutil.copytree(dist_path, output_path, dirs_exist_ok=True)
+    else:
+        logging.warning("dist/ not found — run 'npm run build' first")
 
 
 if __name__ == "__main__":
