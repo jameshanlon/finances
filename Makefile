@@ -1,14 +1,11 @@
+SHELL := /bin/bash
 OUTPUT_DIR=output
 
 all: install run
 
 install: venv
-	. venv/bin/activate && ( \
-			pip install -r requirements.txt; \
-			pre-commit install; \
-			nvm use 20; \
-			npm run build \
-		)
+	. venv/bin/activate && pip install -r requirements.txt && pre-commit install
+	. ${HOME}/.nvm/nvm.sh && nvm use 20 && npm install && npm run build
 
 venv:
 	test -d venv || python3 -m venv venv
@@ -51,7 +48,7 @@ fetch-all:
 	)
 
 serve:
-	. venv/bin/activate && python -m http.server
+	. venv/bin/activate && python -m http.server --directory ${OUTPUT_DIR}
 
 test:
 	. venv/bin/activate && python tests.py
@@ -59,3 +56,5 @@ test:
 clean:
 	rm -rfv venv
 	rm -rfv ${OUTPUT_DIR}
+	rm -rfv dist
+	rm -rfv node_modules
