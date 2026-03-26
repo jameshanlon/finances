@@ -42,6 +42,7 @@ class FinanceTests(unittest.TestCase):
         f = Finances([])
         f.years.append(y)
         f.to_json(self.output_path)
+        self.assertTrue((self.output_path / "data.json").exists())
 
     def test_many_transactions(self):
         MONTHS = range(1, 13)

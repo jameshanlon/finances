@@ -62,6 +62,7 @@ class Category(Enum):
 
 @dataclass
 class Transaction:
+    """A class to represent a single transaction."""
     date: datetime.date
     transaction_type: TransactionType
     category: Category
@@ -74,6 +75,7 @@ class Transaction:
 
 
 class Month:
+    """A class to hold a set of transactions within one month."""
     index: int
     transactions: List[Transaction]
 
@@ -112,6 +114,7 @@ class Month:
 
 @dataclass
 class Year:
+    """A class to hold 12 months of transactions."""
     index: int
     months: List[Month]
 
@@ -148,6 +151,7 @@ class MonthInYear(Enum):
 
 @dataclass
 class Finances:
+    """A class to hold finance data."""
     years: List[Year]
 
     def to_json(self, output_dir: Path):
@@ -179,5 +183,5 @@ class Finances:
         }
         filename = output_dir / "data.json"
         with open(filename, "w", encoding="utf-8") as f:
-            json.dump(data, f)
+            json.dump(data, f, indent=2)
         logging.info(f"Wrote {filename}")
