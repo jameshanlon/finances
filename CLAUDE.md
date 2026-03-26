@@ -5,7 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ```bash
-make install       # Create venv, install Python deps, set up pre-commit hooks, build webpack
+make install       # Create venv, install Python deps, set up pre-commit hooks, build with Vite
 make run           # Generate HTML reports from pickled data
 make fetch-latest  # Fetch current year from Google Sheets and regenerate reports
 make fetch-all     # Fetch all years (2016–2026) with delays between requests
@@ -30,6 +30,6 @@ make clean         # Remove venv and output directory
 
 **Google Sheets schemas:** Three formats depending on year — old format B (2016–2017), old format A (2018–2023), new format (2024+). Each year maps to a separate Google Sheet named `Spending-YYYY`.
 
-**Frontend:** Webpack bundles Bootstrap + Chart.js into `output/bundle.js`. Templates in `templates/` use Jinja2. `sorttable.js` provides client-side table sorting.
+**Frontend:** Vite builds React + MUI into `dist/`, copied to `output/` by `make run`. `data.json` is written to `output/` by Python and fetched at runtime by the React SPA.
 
 **Tests** (`tests.py`): Uses `unittest` + `faker` to generate synthetic transactions and verify HTML output. No external services required for tests.
