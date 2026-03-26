@@ -376,7 +376,7 @@ def main(args):
     # Write data to JSON.
     dataset.to_json(output_path)
     # Copy Vite build artifacts into output directory.
-    dist_path = Path("dist")
+    dist_path = Path(__file__).parent / "dist"
     if dist_path.exists():
         shutil.copytree(dist_path, output_path, dirs_exist_ok=True)
     else:
