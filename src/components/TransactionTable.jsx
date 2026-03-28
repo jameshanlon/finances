@@ -1,84 +1,35 @@
-import { useState } from 'react'
-import {
-  Box, Table, TableBody, TableCell, TableContainer, TableHead,
-  TableRow, TableSortLabel, Paper, TextField,
-} from '@mui/material'
+import { DataGrid, GridToolbar } from '@mui/x-data-grid'
 import { fmt } from '../utils/format'
 
 const COLUMNS = [
-  { key: 'date',        label: 'Date' },
-  { key: 'type',        label: 'Type' },
-  { key: 'category',    label: 'Category' },
-  { key: 'description', label: 'Description' },
-  { key: 'amount',      label: 'Amount', align: 'right' },
-  { key: 'note',        label: 'Note' },
+  { field: 'date',        headerName: 'Date',        width: 110 },
+  { field: 'type',        headerName: 'Type',        width: 70 },
+  { field: 'category',    headerName: 'Category',    width: 160 },
+  { field: 'description', headerName: 'Description', flex: 1 },
+  {
+    field: 'amount',
+    headerName: 'Amount',
+    type: 'number',
+    width: 110,
+    valueFormatter: (value) => fmt(value),
+  },
+  { field: 'note', headerName: 'Note', flex: 1 },
 ]
 
 export default function TransactionTable({ transactions }) {
-  const [filter, setFilter] = useState('')
-  const [sort, setSort] = useState({ key: 'date', dir: 'asc' })
-
-  function handleSort(key) {
-    setSort(s => s.key === key
-      ? { key, dir: s.dir === 'asc' ? 'desc' : 'asc' }
-      : { key, dir: 'asc' }
-    )
-  }
-
-  const filtered = filter
-    ? transactions.filter(t =>
-        Object.values(t).some(v =>
-          String(v).toLowerCase().includes(filter.toLowerCase())
-        )
-      )
-    : transactions
-
-  const sorted = [...filtered].sort((a, b) => {
-    const dir = sort.dir === 'asc' ? 1 : -1
-    if (sort.key === 'amount') return dir * (a.amount - b.amount)
-    return dir * String(a[sort.key]).localeCompare(String(b[sort.key]))
-  })
+  const rows = transactions.map((t, i) => ({ id: i, ...t }))
 
   return (
-    <Box>
-      <TextField
-        label="Filter"
-        value={filter}
-        onChange={e => setFilter(e.target.value)}
-        size="small"
-        sx={{ mb: 2 }}
-      />
-      <TableContainer component={Paper}>
-        <Table size="small">
-          <TableHead>
-            <TableRow>
-              {COLUMNS.map(col => (
-                <TableCell key={col.key} align={col.align}>
-                  <TableSortLabel
-                    active={sort.key === col.key}
-                    direction={sort.key === col.key ? sort.dir : 'asc'}
-                    onClick={() => handleSort(col.key)}
-                  >
-                    {col.label}
-                  </TableSortLabel>
-                </TableCell>
-              ))}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {sorted.map((t, i) => (
-              <TableRow key={i} hover>
-                <TableCell>{t.date}</TableCell>
-                <TableCell>{t.type}</TableCell>
-                <TableCell>{t.category}</TableCell>
-                <TableCell>{t.description}</TableCell>
-                <TableCell align="right">{fmt(t.amount)}</TableCell>
-                <TableCell>{t.note}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-    </Box>
+    <DataGrid
+      rows={rows}
+      columns={COLUMNS}
+      autoHeight
+      disableRowSelectionOnClick
+      slots={{ toolbar: GridToolbar }}
+      slotProps={{ toolbar: { showQuickFilter: true } }}
+      initialState={{
+        sorting: { sortModel: [{ field: 'date', sort: 'asc' }] },
+      }}
+    />
   )
 }
