@@ -1,4 +1,5 @@
-import { Container, Typography, Box, CircularProgress } from '@mui/material'
+import { Link } from 'react-router-dom'
+import { Container, Typography, Box, CircularProgress, Button } from '@mui/material'
 import { BarChart } from '@mui/x-charts/BarChart'
 import { LineChart } from '@mui/x-charts/LineChart'
 import { useFinances, totalAmount, allTransactions } from '../hooks/useFinances'
@@ -53,18 +54,18 @@ export default function Summary() {
       <BarChart
         xAxis={[{ scaleType: 'band', data: yearLabels }]}
         series={allYearsSeries}
-        height={450}
-        margin={{ bottom: 100 }}
-        slotProps={{ legend: { position: { vertical: 'bottom', horizontal: 'middle' } } }}
+        height={550}
+        margin={{ right: 180 }}
+        slotProps={{ legend: { position: { vertical: 'middle', horizontal: 'right' }, direction: 'column' } }}
       />
 
       <Typography variant="h5" gutterBottom sx={{ mt: 3 }}>Category averages over time</Typography>
       <LineChart
         xAxis={[{ scaleType: 'band', data: yearLabels }]}
         series={categoryAverageSeries}
-        height={450}
-        margin={{ bottom: 100 }}
-        slotProps={{ legend: { position: { vertical: 'bottom', horizontal: 'middle' } } }}
+        height={550}
+        margin={{ right: 180 }}
+        slotProps={{ legend: { position: { vertical: 'middle', horizontal: 'right' }, direction: 'column' } }}
       />
 
       {[...years].reverse().map(y => (
@@ -78,10 +79,24 @@ export default function Summary() {
               stack: 'total',
               valueFormatter: fmt,
             }))}
-            height={350}
-            margin={{ bottom: 100 }}
-            slotProps={{ legend: { position: { vertical: 'bottom', horizontal: 'middle' } } }}
+            height={450}
+            margin={{ right: 180 }}
+            slotProps={{ legend: { position: { vertical: 'middle', horizontal: 'right' }, direction: 'column' } }}
           />
+          <Box sx={{ mb: 1 }}>
+            {y.months.map(m => (
+              <Button
+                key={m.index}
+                component={Link}
+                to={`/transactions/${y.index}/${m.index}`}
+                size="small"
+                variant="outlined"
+                sx={{ mr: 0.5, mb: 0.5, textTransform: 'none' }}
+              >
+                {MONTH_NAMES[m.index - 1]}
+              </Button>
+            ))}
+          </Box>
           <CategoryTable year={y} categories={categories} />
         </Box>
       ))}

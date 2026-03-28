@@ -49,8 +49,8 @@ export default function MonthDetail() {
               valueFormatter: v => fmt(v.value),
             }]}
             height={350}
-            margin={{ bottom: 80 }}
-            slotProps={{ legend: { position: { vertical: 'bottom', horizontal: 'middle' } } }}
+            margin={{ right: 200 }}
+            slotProps={{ legend: { position: { vertical: 'middle', horizontal: 'right' }, direction: 'column' } }}
           />
         </Box>
       )}
