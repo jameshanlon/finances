@@ -1,112 +1,90 @@
-import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import {
-  Table, TableBody, TableCell, TableContainer, TableFooter,
-  TableHead, TableRow, TableSortLabel, Paper,
-} from '@mui/material'
+import { Box } from '@mui/material'
+import { DataGrid } from '@mui/x-data-grid'
 import { totalAmount, balance } from '../hooks/useFinances'
 import { fmt } from '../utils/format'
 
 const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
 
 export default function CategoryTable({ year, categories }) {
-  const [sort, setSort] = useState({ key: 'category', dir: 'asc' })
-
-  function handleSort(key) {
-    setSort(s => s.key === key
-      ? { key, dir: s.dir === 'asc' ? 'desc' : 'asc' }
-      : { key, dir: 'asc' }
-    )
-  }
-
-  function monthTotal(monthIndex, category) {
-    const month = year.months.find(m => m.index === monthIndex)
-    return month ? totalAmount(month.transactions, category) : 0
-  }
-
-  function yearTotal(category) {
-    return year.months.reduce((sum, m) => sum + totalAmount(m.transactions, category), 0)
-  }
-
-  function yearAverage(category) {
-    return year.months.length === 0 ? 0 : yearTotal(category) / year.months.length
-  }
-
-  const sortedCategories = [...categories].sort((a, b) => {
-    const dir = sort.dir === 'asc' ? 1 : -1
-    if (sort.key === 'category') return dir * a.localeCompare(b)
-    if (sort.key === 'total') return dir * (yearTotal(a) - yearTotal(b))
-    if (sort.key === 'average') return dir * (yearAverage(a) - yearAverage(b))
-    const mi = parseInt(sort.key)
-    return dir * (monthTotal(mi, a) - monthTotal(mi, b))
+  // Build row data: one row per category with precomputed month totals
+  const rows = categories.map(category => {
+    const row = { id: category, category }
+    year.months.forEach(m => {
+      row[String(m.index)] = totalAmount(m.transactions, category)
+    })
+    row.total = year.months.reduce((sum, m) => sum + totalAmount(m.transactions, category), 0)
+    row.average = year.months.length === 0 ? 0 : row.total / year.months.length
+    return row
   })
 
+  // Precompute balance per month for footer
+  const monthBalances = Object.fromEntries(
+    year.months.map(m => [String(m.index), balance(m.transactions)])
+  )
   const yearBalance = year.months.reduce((sum, m) => sum + balance(m.transactions), 0)
 
-  function SortHeader({ sortKey, align, children }) {
-    return (
-      <TableCell align={align}>
-        <TableSortLabel
-          active={sort.key === sortKey}
-          direction={sort.key === sortKey ? sort.dir : 'asc'}
-          onClick={() => handleSort(sortKey)}
+  // Build column definitions
+  const columns = [
+    { field: 'category', headerName: 'Category', width: 180 },
+    ...year.months.map(m => ({
+      field: String(m.index),
+      type: 'number',
+      width: 80,
+      valueFormatter: (value) => fmt(value),
+      renderHeader: () => (
+        <Link
+          to={`/transactions/${year.index}/${m.index}`}
+          style={{ textDecoration: 'none', color: 'inherit' }}
         >
-          {children}
-        </TableSortLabel>
-      </TableCell>
+          {MONTH_NAMES[m.index - 1]}
+        </Link>
+      ),
+    })),
+    {
+      field: 'total',
+      headerName: 'Year total',
+      type: 'number',
+      width: 110,
+      valueFormatter: (value) => fmt(value),
+    },
+    {
+      field: 'average',
+      headerName: 'Year avg',
+      type: 'number',
+      width: 110,
+      valueFormatter: (value) => fmt(value),
+    },
+  ]
+
+  function BalanceFooter() {
+    return (
+      <Box sx={{ display: 'flex', px: 1, py: 0.5, borderTop: 1, borderColor: 'divider', typography: 'body2' }}>
+        <Box sx={{ width: 180, fontWeight: 'bold' }}>Balance</Box>
+        {year.months.map(m => (
+          <Box key={m.index} sx={{ width: 80, textAlign: 'right' }}>
+            {fmt(monthBalances[String(m.index)])}
+          </Box>
+        ))}
+        <Box sx={{ width: 110, textAlign: 'right', fontWeight: 'bold' }}>{fmt(yearBalance)}</Box>
+        <Box sx={{ width: 110 }} />
+      </Box>
     )
   }
 
   return (
-    <TableContainer component={Paper} sx={{ mt: 1, mb: 3 }}>
-      <Table size="small">
-        <TableHead>
-          <TableRow>
-            <SortHeader sortKey="category">Category</SortHeader>
-            {year.months.map(m => (
-              <TableCell key={m.index} align="right">
-                <TableSortLabel
-                  active={sort.key === String(m.index)}
-                  direction={sort.key === String(m.index) ? sort.dir : 'asc'}
-                  onClick={() => handleSort(String(m.index))}
-                >
-                  <Link to={`/transactions/${year.index}/${m.index}`} style={{ textDecoration: 'none' }}>
-                    {MONTH_NAMES[m.index - 1]}
-                  </Link>
-                </TableSortLabel>
-              </TableCell>
-            ))}
-            <SortHeader sortKey="total" align="right">Year total</SortHeader>
-            <SortHeader sortKey="average" align="right">Year average</SortHeader>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {sortedCategories.map(category => (
-            <TableRow key={category} hover>
-              <TableCell component="th" scope="row">{category}</TableCell>
-              {year.months.map(m => (
-                <TableCell key={m.index} align="right">
-                  {fmt(monthTotal(m.index, category))}
-                </TableCell>
-              ))}
-              <TableCell align="right"><strong>{fmt(yearTotal(category))}</strong></TableCell>
-              <TableCell align="right"><strong>{fmt(yearAverage(category))}</strong></TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-        <TableFooter>
-          <TableRow>
-            <TableCell><strong>Balance</strong></TableCell>
-            {year.months.map(m => (
-              <TableCell key={m.index} align="right">
-                <strong>{fmt(balance(m.transactions))}</strong>
-              </TableCell>
-            ))}
-            <TableCell align="right"><strong>{fmt(yearBalance)}</strong></TableCell>
-            <TableCell />
-          </TableRow>
-        </TableFooter>
-      </Table>
-    </TableContainer>
+    <DataGrid
+      rows={rows}
+      columns={columns}
+      autoHeight
+      disableRowSelectionOnClick
+      hideFooterPagination
+      hideFooterSelectedRowCount
+      slots={{ footer: BalanceFooter }}
+      initialState={{
+        sorting: { sortModel: [{ field: 'category', sort: 'asc' }] },
+      }}
+      sx={{ mt: 1, mb: 3 }}
+    />
   )
 }
