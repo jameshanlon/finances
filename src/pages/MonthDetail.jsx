@@ -42,14 +42,15 @@ export default function MonthDetail() {
       <Typography sx={{ mb: 2 }}>{transactions.length} transactions</Typography>
 
       {pieData.length > 0 && (
-        <Box sx={{ width: 600, mb: 3 }}>
+        <Box sx={{ width: 700, mb: 3 }}>
           <PieChart
             series={[{
               data: pieData,
               valueFormatter: v => fmt(v.value),
             }]}
-            height={300}
-            slotProps={{ legend: { position: { vertical: 'middle', horizontal: 'right' } } }}
+            height={350}
+            margin={{ bottom: 80 }}
+            slotProps={{ legend: { position: { vertical: 'bottom', horizontal: 'middle' } } }}
           />
         </Box>
       )}

@@ -39,7 +39,12 @@ export default function Summary() {
         <Typography component="span"><strong>Jump to: </strong></Typography>
         {[...years].reverse().map(y => (
           <Typography key={y.index} component="span" sx={{ mr: 1 }}>
-            <a href={`#year-${y.index}`}>{y.index}</a>
+            <a
+              href="#"
+              onClick={e => { e.preventDefault(); document.getElementById(`year-${y.index}`)?.scrollIntoView({ behavior: 'smooth' }) }}
+            >
+              {y.index}
+            </a>
           </Typography>
         ))}
       </Box>
@@ -48,16 +53,18 @@ export default function Summary() {
       <BarChart
         xAxis={[{ scaleType: 'band', data: yearLabels }]}
         series={allYearsSeries}
-        height={400}
-        slotProps={{ legend: { position: { vertical: 'middle', horizontal: 'right' } } }}
+        height={450}
+        margin={{ bottom: 100 }}
+        slotProps={{ legend: { position: { vertical: 'bottom', horizontal: 'middle' } } }}
       />
 
       <Typography variant="h5" gutterBottom sx={{ mt: 3 }}>Category averages over time</Typography>
       <LineChart
         xAxis={[{ scaleType: 'band', data: yearLabels }]}
         series={categoryAverageSeries}
-        height={400}
-        slotProps={{ legend: { position: { vertical: 'middle', horizontal: 'right' } } }}
+        height={450}
+        margin={{ bottom: 100 }}
+        slotProps={{ legend: { position: { vertical: 'bottom', horizontal: 'middle' } } }}
       />
 
       {[...years].reverse().map(y => (
@@ -71,8 +78,9 @@ export default function Summary() {
               stack: 'total',
               valueFormatter: fmt,
             }))}
-            height={300}
-            slotProps={{ legend: { position: { vertical: 'middle', horizontal: 'right' } } }}
+            height={350}
+            margin={{ bottom: 100 }}
+            slotProps={{ legend: { position: { vertical: 'bottom', horizontal: 'middle' } } }}
           />
           <CategoryTable year={y} categories={categories} />
         </Box>
