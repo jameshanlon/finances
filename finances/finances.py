@@ -191,22 +191,32 @@ class Finances:
 
     def render_html(self, output_dir: Path):
         environment = Environment(loader=FileSystemLoader("templates/"))
+        shared = dict(months=MonthInYear, categories=Category, all_years=self.years)
+
         template = environment.get_template("index.html")
-        content = template.render(months=MonthInYear, categories=Category, dataset=self)
+        content = template.render(**shared, dataset=self)
         filename = output_dir / "index.html"
-        # Summary
         with open(filename, mode="w", encoding="utf-8") as f:
             f.write(content)
             logging.info(f"Wrote {filename}")
-        # Years
+
+        # Year pages
+        year_template = environment.get_template("year.html")
+        for year in self.years:
+            content = year_template.render(**shared, year=year)
+            filename = output_dir / f"year-{year.index}.html"
+            with open(filename, mode="w", encoding="utf-8") as f:
+                f.write(content)
+                logging.info(f"Wrote {filename}")
+
+        # Month pages
         month_template = environment.get_template("month.html")
         for year in self.years:
             for month in year.months:
                 content = month_template.render(
+                    **shared,
                     year=year.index,
                     month=month.index,
-                    months=MonthInYear,
-                    categories=Category,
                     dataset=month,
                 )
                 filename = output_dir / f"transactions-{month.index}-{year.index}.html"

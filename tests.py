@@ -219,6 +219,7 @@ class TestHtmlRendering(unittest.TestCase):
         f.years[0].months.append(m)
         f.render_html(self.output_path)
         self.assertTrue((self.output_path / "index.html").exists())
+        self.assertTrue((self.output_path / "year-2024.html").exists())
         self.assertTrue((self.output_path / "transactions-1-2024.html").exists())
 
     def test_many_transactions(self):
@@ -235,6 +236,7 @@ class TestHtmlRendering(unittest.TestCase):
         f.render_html(self.output_path)
         self.assertTrue((self.output_path / "index.html").exists())
         for year in YEARS:
+            self.assertTrue((self.output_path / f"year-{year}.html").exists())
             for month_num in range(1, 13):
                 self.assertTrue(
                     (
