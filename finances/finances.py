@@ -97,7 +97,7 @@ class Month:
     def report_transactions(self):
         headers = ["Date", "Type", "Category", "Description", "Amount", "Note"]
         table = []
-        for transaction in self.transactions:
+        for t in self.transactions:
             table.append(
                 [
                     f"{t.date:%d-%m-%Y}",
@@ -115,9 +115,7 @@ class Month:
         """
         Return the total amount in a given category of transaction.
         """
-        return float(
-            sum([x.amount for x in self.transactions if x.category == category])
-        )
+        return float(sum(x.amount for x in self.transactions if x.category == category))
 
     def balance(self) -> float:
         """
@@ -201,9 +199,10 @@ class Finances:
             f.write(content)
             logging.info(f"Wrote {filename}")
         # Years
+        month_template = environment.get_template("month.html")
         for year in self.years:
             for month in year.months:
-                template = environment.get_template("month.html")
+                template = month_template
                 content = template.render(
                     year=year.index,
                     month=month.index,
@@ -224,10 +223,9 @@ class Finances:
             src_path = Path(d)
             if not src_path.exists():
                 raise RuntimeError(f"Directory {d} does not exist")
-            dst_path = output_dir / src_path
-            if src_path != dst_path:
+            if src_path != output_dir:
                 shutil.copytree(src_path, output_dir, dirs_exist_ok=True)
-                logging.info(f"Copied {src_path} to {dst_path}")
+                logging.info(f"Copied {src_path} to {output_dir}")
 
     def copy_web_files(self, output_dir: Path):
         """

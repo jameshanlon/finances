@@ -22,8 +22,6 @@ from dateutil import parser as dateparser
 Finances command-line interface and integration with Google Sheets.
 """
 
-gc = gspread.service_account()
-
 
 @dataclass
 class Sheet:
@@ -102,7 +100,7 @@ def transaction_type_from_str(label: str) -> TransactionType:
         return TransactionType.ONL
     elif label == "POS" or label == "DEBIT_CARD":
         return TransactionType.POS
-    elif label == "ATM" or label == "CSH" or label == "CPT" or label == "CASHPOINT":
+    elif label == "ATM" or label == "CSH" or label == "CASHPOINT":
         return TransactionType.CASH
     elif label == "DCR":
         return TransactionType.DCR
@@ -305,10 +303,11 @@ def fetch_month(sheet, year_index: int, month_index: int) -> Month:
     return SHEETS[year_index].reader(values, year_index, month_index)
 
 
-def fetch_year(year_index: int, fetch: bool, output_dir: Path) -> Year:
+def fetch_year(year_index: int, output_dir: Path) -> Year:
     """
-    Fetch year date from Google Sheets.
+    Fetch year data from Google Sheets.
     """
+    gc = gspread.service_account()
     filename = output_dir / f"finances-{year_index}.pickle"
     sheet = gc.open(SHEETS[year_index].name)
     logging.info(
@@ -326,9 +325,9 @@ def fetch_year(year_index: int, fetch: bool, output_dir: Path) -> Year:
     return year
 
 
-def load_year(year_index: int, fetch: bool, output_dir: Path) -> Year:
+def load_year(year_index: int, output_dir: Path) -> Year:
     """
-    Load a year from a pikcle file.
+    Load a year from a pickle file.
     """
     filename = output_dir / f"finances-{year_index}.pickle"
     if not Path(filename).exists():
@@ -366,11 +365,11 @@ def main(args):
             raise RuntimeError("Specify a year to fetch (--year)")
 
         # Just fetch a particular year.
-        fetch_year(args.year, args.fetch, output_path)
+        fetch_year(args.year, output_path)
         return
 
     # Load pickled data.
-    dataset = Finances([load_year(x, args.fetch, output_path) for x in SHEETS.keys()])
+    dataset = Finances([load_year(x, output_path) for x in SHEETS.keys()])
 
     # Render the HTML.
     dataset.create_html_report(output_path)
