@@ -1,3 +1,6 @@
+"""
+Finances command-line interface and integration with Google Sheets.
+"""
 import gspread
 import argparse
 from finances.finances import (
@@ -17,10 +20,6 @@ import pickle
 from pathlib import Path
 import datetime
 from dateutil import parser as dateparser
-
-"""
-Finances command-line interface and integration with Google Sheets.
-"""
 
 
 @dataclass
@@ -165,7 +164,7 @@ def read_old_worksheet_b(table, year_index: int, month_index: int) -> Month:
         except UnknownCategory:
             pass
         try:
-            if category == None:
+            if category is None:
                 raise InvalidRow()
             if row[0] == "":
                 raise InvalidRow()
@@ -215,7 +214,7 @@ def read_old_worksheet_a(table, year_index: int, month_index: int) -> Month:
         except UnknownCategory:
             pass
         try:
-            if category == None:
+            if category is None:
                 raise InvalidRow()
             if row[1] == "":
                 raise InvalidRow()
@@ -330,7 +329,7 @@ def load_year(year_index: int, output_dir: Path) -> Year:
     Load a year from a pickle file.
     """
     filename = output_dir / f"finances-{year_index}.pickle"
-    if not Path(filename).exists():
+    if not filename.exists():
         logging.warning(f"Pickle file {filename} does not exist, skipping")
         return Year(year_index)
     with open(filename, "rb") as f:
@@ -373,6 +372,11 @@ def main(args):
 
     # Render the HTML.
     dataset.create_html_report(output_path)
+
+    if args.report_transactions:
+        for year in dataset.years:
+            for month in year.months:
+                month.report_transactions()
 
 
 if __name__ == "__main__":

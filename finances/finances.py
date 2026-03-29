@@ -81,7 +81,7 @@ class Transaction:
 
 class Month:
     """
-    A class to hold a set of transations within one month.
+    A class to hold a set of transactions within one month.
     """
 
     index: int
@@ -145,7 +145,7 @@ class Year:
 
     def average_amount(self, category: Category) -> float:
         """
-        Return the total amount in a given category of transaction.
+        Return the average monthly amount in a given category of transaction.
         """
         if len(self.months) == 0:
             return 0.0
@@ -202,8 +202,7 @@ class Finances:
         month_template = environment.get_template("month.html")
         for year in self.years:
             for month in year.months:
-                template = month_template
-                content = template.render(
+                content = month_template.render(
                     year=year.index,
                     month=month.index,
                     months=MonthInYear,
