@@ -15,6 +15,9 @@
     <h2>Summary</h2>
     <div><canvas id="all-years-chart"></canvas></div>
 
+    <h2>Category totals over time</h2>
+    <div><canvas id="category-totals-chart"></canvas></div>
+
     <h2>Category averages over time</h2>
     <div><canvas id="categories-chart"></canvas></div>
 
@@ -71,6 +74,60 @@
             legend: {
               position: 'right',
             },
+          },
+        }
+      });
+    </script>
+
+    <!-- Yearly totals per category as separate series -->
+    <script>
+      const category_totals_ctx = document.getElementById('category-totals-chart');
+      new Chart(category_totals_ctx, {
+        type: 'line',
+        data: {
+          labels: [{% for year in dataset.years %} '{{year.index}}', {% endfor %} ],
+          datasets: [
+          {% for category in categories %}
+          {
+            label: '{{category.name}}',
+            data: [
+              {% for year in dataset.years %}
+              {{year.total_amount(category)}},
+              {% endfor %}
+            ],
+            borderWidth: 2,
+            fill: false,
+            tension: 0.1,
+          },
+          {% endfor %}
+          ]
+        },
+        options: {
+          responsive: true,
+          interaction: {
+            mode: 'index',
+            intersect: false,
+          },
+          scales: {
+            y: {
+              ticks: {
+                callback: function(value, index, ticks) {
+                  return '£' + value;
+                }
+              }
+            }
+          },
+          plugins: {
+            legend: {
+              position: 'right',
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return context.dataset.label + ': £' + context.parsed.y.toFixed(2);
+                }
+              }
+            }
           },
         }
       });
