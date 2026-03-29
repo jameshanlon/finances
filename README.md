@@ -8,15 +8,23 @@ Data is pulled from per-year Google Sheets (`Spending-YYYY`), parsed into a type
 
 ```
 Google Sheets → gspread → finances-YYYY.pickle → Jinja2 → output/index.html
+                                                         → output/year-YYYY.html
                                                          → output/transactions-M-YYYY.html
 ```
 
-The summary page (`index.html`) shows:
-- Stacked bar chart of all spending categories across all years
-- Line chart of category monthly averages over time
-- Per-year stacked bar charts with a sortable breakdown table linking to monthly detail
+All pages share a Bootstrap navbar with a **Years** dropdown for quick navigation.
 
-Each monthly detail page (`transactions-M-YYYY.html`) shows:
+**Summary page** (`index.html`):
+- Stacked bar chart of all spending categories across all years
+- Line chart of yearly category totals as separate series (x: year, y: £ total)
+- Line chart of category monthly averages over time
+- Linked list of years
+
+**Year page** (`year-YYYY.html`):
+- Stacked bar chart of monthly spending by category for that year
+- Sortable breakdown table — categories × months — with links to monthly detail pages
+
+**Monthly detail page** (`transactions-M-YYYY.html`):
 - Pie chart of spending by category (excluding income)
 - Filterable, sortable transaction table
 
@@ -138,12 +146,15 @@ finances/
   finances.py            # Data model: Transaction, Month, Year, Finances
   __init__.py            # Runtime type checking via beartype
 templates/
-  index.html             # Summary report template
+  _navbar.html           # Shared Bootstrap navbar (included by all pages)
+  index.html             # Summary page template
+  year.html              # Per-year breakdown template
   month.html             # Monthly transaction detail template
 static/
   js/sorttable.js        # Client-side table sorting
 output/                  # Generated reports (git-ignored)
   index.html
+  year-YYYY.html
   transactions-M-YYYY.html
   bundle.js              # Webpack bundle (Bootstrap + Chart.js)
 tests.py                 # Unit tests (faker-generated synthetic data)
